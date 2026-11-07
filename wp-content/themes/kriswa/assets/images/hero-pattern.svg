@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="1.4" preserveAspectRatio="xMaxYMax slice">
+<defs><pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" stroke-opacity=".07"/></pattern></defs>
+<rect width="1200" height="600" fill="url(#g)" stroke="none"/>
+<g stroke-linejoin="round">
+<path d="M690 600V330l70-40 70 40v270"/><path d="M690 330h140M760 290v310M720 380h20M780 380h20M720 430h20M780 430h20M720 480h20M780 480h20M720 530h20M780 530h20"/>
+<path d="M860 600V220h130v380"/><path d="M860 220l65-50 65 50M880 270h90M880 320h90M880 370h90M880 420h90M880 470h90M880 520h90"/>
+<path d="M1020 600V400h110v200"/><path d="M1020 400l55-40 55 40M1040 440h70M1040 490h70M1040 540h70"/>
+<path d="M560 600V450h110v150"/><path d="M560 450l55-35 55 35M580 490h70M580 540h70"/>
+<path d="M1130 600V500h70v100"/>
+<path d="M420 600l60-110 60 110M450 600l30-55 30 55"/>
+</g>
+<path d="M0 599H1200" stroke-opacity=".3"/>
+<g stroke="#e11d2a" stroke-opacity=".55" stroke-width="2"><path d="M925 170V60M925 60h120M1045 60v36M1045 96l-8 18h16z"/></g>
+</svg>
