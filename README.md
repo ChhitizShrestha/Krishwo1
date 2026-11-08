@@ -15,12 +15,13 @@ wp-content/
 - Custom content types: Projects (type, location, status, before/after slider, video), Services, Testimonials, FAQs
 - **Request-a-quote form** (3 steps, works without JavaScript, spam-protected) – leads are saved in WordPress (**Leads** menu, CSV export) and emailed to you
 - Floating WhatsApp and Call buttons, WhatsApp follow-up after a quote request
+- **Instagram and TikTok feed**: photos and videos appear on the home page and on a Social page; tap a post to watch or view it in an Apple-style viewer without leaving the site
 - Trust badges (company registration, PAN/VAT, Engineering Council, contractor class)
 - Google Maps/OpenStreetMap embed (no API key), offices list, social links
 - Newsletter sign-up (stored locally, or point it at a free Mailchimp/Brevo form)
 - SEO basics: LocalBusiness + FAQ structured data, meta description fallback, optional Google Analytics 4 and Search Console
 - English + Nepali using the free **Polylang** plugin, Bikram Sambat (BS) dates and Devanagari numerals on the Nepali site
-- Performance: self-hosted fonts, no jQuery, tiny CSS/JS, lazy images, emoji script removed
+- Performance: system fonts (SF Pro on Apple devices, Inter bundled as fallback), no jQuery, tiny CSS/JS, lazy images, emoji script removed
 
 ## Install
 
@@ -29,6 +30,28 @@ wp-content/
 3. Go to **Tools > Kriswa Setup** and click **Run setup**. This creates the pages, sets the static front page, pretty links and the Kathmandu timezone, and adds clearly marked *sample* services, projects, testimonials, FAQs and posts. (CLI: `wp kriswa setup`.)
 4. Go to **Settings > Kriswa** and replace every placeholder: phone, WhatsApp number, email, address, offices, registration numbers, social links, map embed URL, homepage statistics.
 5. Replace the sample content with your real content and photos (set a featured image on every project).
+
+### Instagram and TikTok
+
+All free. Settings live under **Settings > Kriswa > Instagram and TikTok feed**.
+
+**Instagram (photos and playable videos, updates automatically)**
+1. Make sure the Instagram account is a free *Professional* account (Business or Creator): Instagram app > Settings > Account type.
+2. At developers.facebook.com create an app, add the **Instagram** product and choose *API setup with Instagram login*. Add your Instagram account and press **Generate token** (Meta occasionally renames these buttons).
+3. Paste the token into **Instagram access token** and save. The site loads your latest posts, caches them for an hour and refreshes the token automatically every week so it never expires.
+4. Set your profile link under *Social media* so the "Follow @name" link and handle appear.
+
+**TikTok (videos)**
+1. Open a video on TikTok, copy its link, and paste one link per line into **TikTok video links**. Save.
+2. TikTok only lists a whole profile automatically through an app that TikTok must approve, so this site uses the free link-based method. Add new videos by pasting their links.
+
+The panel shows a tab bar when both are connected, falls back to a tidy "Follow us" card when neither is, and shows a note (to admins only) if Instagram reports a problem. **Settings > Kriswa > Refresh feeds now** forces an update.
+
+Privacy: Instagram images load from Meta's servers. TikTok loads nothing from TikTok until a visitor taps a video.
+
+### Design
+
+The look follows Apple's Human Interface principles: clarity (large type, one accent colour, generous space), deference (content first, quiet footer, translucent slim navigation), depth (soft layered surfaces and gentle motion), 44 px touch targets, visible keyboard focus, automatic Light and Dark appearance, and reduced-motion support. Colours and spacing are tokens at the top of `assets/css/theme.css` and in `theme.json`.
 
 ### Nepali (नेपाली)
 

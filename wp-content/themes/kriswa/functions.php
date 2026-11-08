@@ -36,16 +36,7 @@ add_action(
 	}
 );
 
-/* Performance: preload the two Latin fonts used above the fold; drop the emoji script. */
-add_action(
-	'wp_head',
-	function () {
-		foreach ( array( 'inter-latin-wght-normal.woff2', 'plus-jakarta-sans-latin-wght-normal.woff2' ) as $f ) {
-			printf( '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n", esc_url( get_theme_file_uri( 'assets/fonts/' . $f ) ) );
-		}
-	},
-	1
-);
+/* Performance: system fonts are used first (no download on Apple devices); drop the emoji script. */
 remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
 remove_action( 'wp_print_styles', 'print_emoji_styles' );
 

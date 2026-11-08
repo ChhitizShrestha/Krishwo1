@@ -36,6 +36,8 @@ function kriswa_default_options() {
 		'tiktok'           => 'https://tiktok.com/',
 		'linkedin'         => '',
 		'notify_email'     => '',
+		'instagram_token'  => '',
+		'tiktok_videos'    => '',
 		'newsletter_url'   => '',
 		'newsletter_field' => 'EMAIL',
 		'ga4_id'           => '',

@@ -15,8 +15,8 @@
 <!-- wp:paragraph {"className":"kr-hero__text"} --><p class="kr-hero__text"><?php esc_html_e( 'From first sketch to final handover, our engineers, architects and site teams deliver your house, renovation or interior with honest pricing and on-time results.', 'kriswa' ); ?></p><!-- /wp:paragraph -->
 <?php
 echo kriswa_buttons( // phpcs:ignore WordPress.Security.EscapeOutput
-	kriswa_btn( __( 'Get a Free Quote', 'kriswa' ), kriswa_quote_url(), '', 'kr-btn-light' ) .
-	kriswa_btn( __( 'See our projects', 'kriswa' ), kriswa_projects_url(), 'outline', 'kr-btn-ghost-light' ),
+	kriswa_btn( __( 'Get a Free Quote', 'kriswa' ), kriswa_quote_url() ) .
+	kriswa_btn( __( 'See our projects', 'kriswa' ), kriswa_projects_url(), 'outline' ),
 	'kr-hero__btns'
 );
 ?>
@@ -28,5 +28,8 @@ echo kriswa_buttons( // phpcs:ignore WordPress.Security.EscapeOutput
 </ul>
 <!-- /wp:html -->
 </div>
-<!-- /wp:group --></div>
+<!-- /wp:group -->
+<!-- wp:html -->
+<div class="kr-hero__visual" role="presentation"></div>
+<!-- /wp:html --></div>
 <!-- /wp:group -->

@@ -191,3 +191,73 @@
 		} );
 	} );
 }() );
+
+/* ---------- Social feed: tabs and lightbox player ---------- */
+( function () {
+	'use strict';
+	document.querySelectorAll( '[data-kr-social]' ).forEach( function ( root ) {
+		var tabs = Array.prototype.slice.call( root.querySelectorAll( '[role="tab"]' ) );
+		function select( tab ) {
+			tabs.forEach( function ( t ) {
+				var on = t === tab;
+				t.setAttribute( 'aria-selected', on ? 'true' : 'false' );
+				t.tabIndex = on ? 0 : -1;
+				var panel = document.getElementById( t.getAttribute( 'aria-controls' ) );
+				if ( panel ) { panel.hidden = ! on; }
+			} );
+		}
+		tabs.forEach( function ( t, i ) {
+			t.addEventListener( 'click', function () { select( t ); } );
+			t.addEventListener( 'keydown', function ( e ) {
+				var n = null;
+				if ( e.key === 'ArrowRight' ) { n = tabs[ ( i + 1 ) % tabs.length ]; }
+				if ( e.key === 'ArrowLeft' ) { n = tabs[ ( i - 1 + tabs.length ) % tabs.length ]; }
+				if ( n ) { e.preventDefault(); select( n ); n.focus(); }
+			} );
+		} );
+
+		var dlg = root.querySelector( '.kr-lightbox' );
+		if ( ! dlg || typeof dlg.showModal !== 'function' ) { return; } // Tiles stay normal links.
+		var body = dlg.querySelector( '.kr-lightbox__body' );
+		var cap = dlg.querySelector( '.kr-lightbox__caption' );
+		var link = dlg.querySelector( '.kr-lightbox__link' );
+
+		function close() { if ( dlg.open ) { dlg.close(); } }
+		dlg.querySelector( '.kr-lightbox__close' ).addEventListener( 'click', close );
+		dlg.addEventListener( 'click', function ( e ) { if ( e.target === dlg ) { close(); } } );
+		dlg.addEventListener( 'close', function () { body.textContent = ''; } ); // Stops playback.
+
+		root.addEventListener( 'click', function ( e ) {
+			var tile = e.target.closest( '.kr-tile' );
+			if ( ! tile ) { return; }
+			var kind = tile.getAttribute( 'data-kind' );
+			e.preventDefault();
+			body.textContent = '';
+			if ( kind === 'video' ) {
+				var v = document.createElement( 'video' );
+				v.controls = true; v.autoplay = true; v.playsInline = true; v.preload = 'metadata';
+				v.setAttribute( 'playsinline', '' );
+				v.poster = tile.getAttribute( 'data-poster' ) || '';
+				v.src = tile.getAttribute( 'data-src' );
+				body.appendChild( v );
+			} else if ( kind === 'tiktok' ) {
+				var f = document.createElement( 'iframe' );
+				var id = ( tile.getAttribute( 'data-id' ) || '' ).replace( /\D/g, '' );
+				f.src = 'https://www.tiktok.com/embed/v2/' + id;
+				f.allow = 'autoplay; fullscreen; encrypted-media';
+				f.allowFullscreen = true;
+				f.title = tile.getAttribute( 'data-caption' ) || 'TikTok';
+				body.appendChild( f );
+			} else {
+				var im = document.createElement( 'img' );
+				im.src = tile.getAttribute( 'data-src' );
+				im.alt = tile.getAttribute( 'data-caption' ) || '';
+				body.appendChild( im );
+			}
+			cap.textContent = tile.getAttribute( 'data-caption' ) || '';
+			link.href = tile.href;
+			link.textContent = ( tile.getAttribute( 'data-platform' ) === 'TikTok' ? 'Watch on TikTok' : 'View on Instagram' ) + ' ›';
+			dlg.showModal();
+		} );
+	} );
+}() );

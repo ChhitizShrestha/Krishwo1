@@ -125,6 +125,7 @@ function kriswa_run_setup( $with_samples = true ) {
 		'services'    => array( 'Our Services', 'हाम्रा सेवाहरू', 'page-services' ),
 		'get-a-quote' => array( 'Get a Free Quote', 'निःशुल्क कोटेसन', 'page-quote' ),
 		'faq'         => array( 'FAQ', 'बारम्बार सोधिने प्रश्नहरू', 'page-faq' ),
+		'social'      => array( 'Social', 'सामाजिक सञ्जाल', 'page-social' ),
 		'contact'     => array( 'Contact Us', 'सम्पर्क', 'page-contact' ),
 		'blog'        => array( 'Blog', 'ब्लग', '' ),
 	);

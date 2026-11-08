@@ -115,5 +115,12 @@ return array(
 		'Years of experience' => 'वर्षको अनुभव',
 		'You get a detailed estimate before work starts, with no hidden costs or surprise additions.' => 'काम सुरु हुनुअघि नै तपाईंले विस्तृत अनुमान पाउनुहुन्छ, कुनै लुकेको खर्च वा अचानक थप छैन।',
 		'brand short nameKriswa' => 'क्रिस्वा',
+		'Social' => 'सामाजिक सञ्जाल',
+		'Follow our work' => 'हाम्रो काम पछ्याउनुहोस्',
+		'See our sites, in photos and video' => 'हाम्रा साइटहरू, फोटो र भिडियोमा',
+		'Fresh updates from our teams on Instagram and TikTok. Tap any post to watch it right here.' => 'इन्स्टाग्राम र टिकटकमा हाम्रा टोलीका ताजा अपडेट। कुनै पनि पोस्टमा थिचेर यहीँ हेर्नुहोस्।',
+		'Instagram and TikTok' => 'इन्स्टाग्राम र टिकटक',
+		'Life on our construction sites' => 'हाम्रा निर्माण स्थलको जीवन',
+		'Progress photos, finished homes and short videos from our teams. Tap any post to view it here.' => 'हाम्रा टोलीका प्रगतिका फोटो, सम्पन्न घर र छोटा भिडियो। कुनै पनि पोस्टमा थिचेर यहीँ हेर्नुहोस्।',
 	),
 );

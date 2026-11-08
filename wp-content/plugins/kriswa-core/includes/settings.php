@@ -49,6 +49,10 @@ function kriswa_settings_schema() {
 			'tiktok'    => array( 'TikTok URL', 'url' ),
 			'linkedin'  => array( 'LinkedIn URL', 'url' ),
 		),
+		'Instagram and TikTok feed' => array(
+			'instagram_token' => array( 'Instagram access token (long-lived). Stored privately; leave empty to keep the saved one', 'secret' ),
+			'tiktok_videos'   => array( 'TikTok video links, one per line (e.g. https://www.tiktok.com/@yourname/video/1234567890)', 'textarea' ),
+		),
 		'Newsletter and analytics' => array(
 			'newsletter_url'   => array( 'Newsletter form action URL (free Mailchimp or Brevo embedded-form "action"); leave empty to store subscribers in WordPress under Leads', 'url' ),
 			'newsletter_field' => array( 'Newsletter email field name (Mailchimp: EMAIL, Brevo: EMAIL)', 'text' ),
@@ -89,6 +93,16 @@ function kriswa_sanitize_options( $input ) {
 		foreach ( $fields as $key => $def ) {
 			$val = isset( $input[ $key ] ) ? wp_unslash( $input[ $key ] ) : '';
 			switch ( $def[1] ) {
+				case 'secret':
+					$old = get_option( 'kriswa_options', array() );
+					if ( ! empty( $input[ $key . '_clear' ] ) ) {
+						$out[ $key ] = '';
+					} elseif ( '' === trim( $val ) ) {
+						$out[ $key ] = isset( $old[ $key ] ) ? $old[ $key ] : '';
+					} else {
+						$out[ $key ] = preg_replace( '/[^A-Za-z0-9_\-.]/', '', $val );
+					}
+					break;
 				case 'url':
 					$out[ $key ] = esc_url_raw( $val );
 					break;
@@ -118,6 +132,9 @@ function kriswa_settings_page() {
 	$opts  = wp_parse_args( is_array( $saved ) ? $saved : array(), kriswa_default_options() );
 	echo '<div class="wrap"><h1>Kriswa site settings</h1>';
 	echo '<p>All contact details start as placeholders. Replace them here and they update everywhere on the site.</p>';
+	if ( function_exists( 'kriswa_social_status_box' ) ) {
+		kriswa_social_status_box();
+	}
 	echo '<form method="post" action="options.php">';
 	settings_fields( 'kriswa_settings' );
 	foreach ( kriswa_settings_schema() as $section => $fields ) {
@@ -127,6 +144,12 @@ function kriswa_settings_page() {
 			echo '<tr><th scope="row"><label for="kr_' . esc_attr( $key ) . '">' . esc_html( $def[0] ) . '</label></th><td>';
 			if ( 'textarea' === $def[1] ) {
 				echo '<textarea class="large-text" rows="4" id="kr_' . esc_attr( $key ) . '" name="' . esc_attr( $name ) . '">' . esc_textarea( $opts[ $key ] ) . '</textarea>';
+			} elseif ( 'secret' === $def[1] ) {
+				$has = '' !== trim( (string) $opts[ $key ] );
+				echo '<input class="large-text" type="password" autocomplete="new-password" id="kr_' . esc_attr( $key ) . '" name="' . esc_attr( $name ) . '" value="" placeholder="' . esc_attr( $has ? 'A token is saved (hidden). Paste a new one to replace it.' : 'Paste token here' ) . '" />';
+				if ( $has ) {
+					echo '<p><label><input type="checkbox" value="1" name="kriswa_options[' . esc_attr( $key ) . '_clear]"> Disconnect (remove the saved token)</label></p>';
+				}
 			} elseif ( 'checkbox' === $def[1] ) {
 				echo '<input type="checkbox" value="1" id="kr_' . esc_attr( $key ) . '" name="' . esc_attr( $name ) . '"' . checked( '1', $opts[ $key ], false ) . ' />';
 			} else {

@@ -24,6 +24,7 @@ require_once KRISWA_CORE_DIR . 'includes/post-types.php';
 require_once KRISWA_CORE_DIR . 'includes/settings.php';
 require_once KRISWA_CORE_DIR . 'includes/shortcodes.php';
 require_once KRISWA_CORE_DIR . 'includes/leads.php';
+require_once KRISWA_CORE_DIR . 'includes/social.php';
 require_once KRISWA_CORE_DIR . 'includes/frontend.php';
 require_once KRISWA_CORE_DIR . 'includes/demo-content.php';
 

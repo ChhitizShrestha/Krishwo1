@@ -15,7 +15,7 @@ $steps = array(
 );
 $ne    = kriswa_is_nepali_theme();
 
-echo kriswa_section_open( 'tint' ); // phpcs:ignore WordPress.Security.EscapeOutput
+echo kriswa_section_open(); // phpcs:ignore WordPress.Security.EscapeOutput
 echo kriswa_head( __( 'How we work', 'kriswa' ), __( 'A simple, transparent process', 'kriswa' ), __( 'Four clear steps from your first call to the day you move in.', 'kriswa' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 ?>
 <!-- wp:html -->
