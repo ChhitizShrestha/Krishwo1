@@ -5,7 +5,7 @@
  * Instagram: uses the free "Instagram API with Instagram Login" with a long-lived access token
  *            (Business or Creator account). The token is refreshed automatically every week.
  * TikTok:    uses TikTok's free public oEmbed endpoint for the video links you paste into
- *            Settings > Kriswa. (Listing a whole TikTok profile automatically needs TikTok's
+ *            Kriswa Site > Site Details. (Listing a whole TikTok profile automatically needs TikTok's
  *            approved Display API, which is not free of review; pasted links need nothing.)
  *
  * @package Kriswa_Core
@@ -14,6 +14,12 @@
 defined( 'ABSPATH' ) || exit;
 
 const KRISWA_IG_API = 'https://graph.instagram.com';
+
+
+/** Lightbox player markup (filled by JavaScript; every tile is still a normal link without it). */
+function kriswa_lightbox_html() {
+	return '<dialog class="kr-lightbox" aria-label="' . esc_attr__( 'Media viewer', 'kriswa-core' ) . '"><button type="button" class="kr-lightbox__close" aria-label="' . esc_attr__( 'Close', 'kriswa-core' ) . '">&times;</button><div class="kr-lightbox__body"></div><div class="kr-lightbox__meta"><p class="kr-lightbox__caption"></p><a class="kr-link kr-lightbox__link" target="_blank" rel="noopener" hidden></a></div></dialog>';
+}
 
 /* ------------------------------------------------------------------------- *
  * Instagram
@@ -245,7 +251,7 @@ add_shortcode(
 		// Admin-only hint when something needs attention.
 		if ( current_user_can( 'manage_options' ) && ( 'error' === $ig['status'] || 'not_connected' === $ig['status'] ) ) {
 			$msg = 'error' === $ig['status'] ? 'Instagram: ' . $ig['message'] : 'Instagram is not connected yet.';
-			echo '<p class="kr-social-feed__admin">' . esc_html( $msg ) . ' <a href="' . esc_url( admin_url( 'options-general.php?page=kriswa-settings#kriswa-social' ) ) . '">' . esc_html__( 'Open settings', 'kriswa-core' ) . '</a> <em>(' . esc_html__( 'only admins see this note', 'kriswa-core' ) . ')</em></p>';
+			echo '<p class="kr-social-feed__admin">' . esc_html( $msg ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=kriswa-settings#kriswa-social' ) ) . '">' . esc_html__( 'Open settings', 'kriswa-core' ) . '</a> <em>(' . esc_html__( 'only admins see this note', 'kriswa-core' ) . ')</em></p>';
 		}
 
 		if ( ! $panels ) {
@@ -311,8 +317,7 @@ add_shortcode(
 		}
 		echo '</p>';
 
-		// Lightbox player (filled by JavaScript; each tile is a normal link without it).
-		echo '<dialog class="kr-lightbox" aria-label="' . esc_attr__( 'Media viewer', 'kriswa-core' ) . '"><button type="button" class="kr-lightbox__close" aria-label="' . esc_attr__( 'Close', 'kriswa-core' ) . '">&times;</button><div class="kr-lightbox__body"></div><div class="kr-lightbox__meta"><p class="kr-lightbox__caption"></p><a class="kr-link kr-lightbox__link" href="#" target="_blank" rel="noopener"></a></div></dialog>';
+		echo kriswa_lightbox_html(); // phpcs:ignore WordPress.Security.EscapeOutput
 		echo '</div>';
 		return ob_get_clean();
 	}
@@ -337,7 +342,7 @@ add_action(
 			delete_transient( 'kriswa_tt_' . md5( $u ) );
 			kriswa_tiktok_item( $u, $budget );
 		}
-		wp_safe_redirect( admin_url( 'options-general.php?page=kriswa-settings&refreshed=1#kriswa-social' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=kriswa-settings&refreshed=1#kriswa-social' ) );
 		exit;
 	}
 );

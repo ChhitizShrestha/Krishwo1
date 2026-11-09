@@ -121,5 +121,8 @@ return array(
 		'Social channel' => 'सामाजिक सञ्जाल च्यानल',
 		'Media viewer' => 'मिडिया हेर्ने',
 		'Close' => 'बन्द गर्नुहोस्',
+		'Residential construction (new house)' => 'आवासीय निर्माण (नयाँ घर)',
+		'Land and building valuation' => 'जग्गा तथा भवन मूल्याङ्कन',
+		'Photos' => 'फोटोहरू',
 	),
 );

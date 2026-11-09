@@ -14,7 +14,8 @@ defined( 'ABSPATH' ) || exit;
 
 function kriswa_quote_services() {
 	return array(
-		'new-house'    => __( 'New house construction', 'kriswa-core' ),
+		'new-house'    => __( 'Residential construction (new house)', 'kriswa-core' ),
+		'valuation'    => __( 'Land and building valuation', 'kriswa-core' ),
 		'apartment'    => __( 'Apartment or commercial building', 'kriswa-core' ),
 		'renovation'   => __( 'Renovation or extension', 'kriswa-core' ),
 		'interior'     => __( 'Interior design and fit-out', 'kriswa-core' ),

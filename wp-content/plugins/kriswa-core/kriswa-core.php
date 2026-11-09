@@ -27,12 +27,14 @@ require_once KRISWA_CORE_DIR . 'includes/leads.php';
 require_once KRISWA_CORE_DIR . 'includes/social.php';
 require_once KRISWA_CORE_DIR . 'includes/frontend.php';
 require_once KRISWA_CORE_DIR . 'includes/demo-content.php';
+require_once KRISWA_CORE_DIR . 'includes/admin.php';
 
 register_activation_hook(
 	__FILE__,
 	function () {
 		kriswa_register_post_types();
-		flush_rewrite_rules();
+		// Create every page the menus link to (and sample content) so no link leads to "page not found".
+		kriswa_run_setup( true );
 	}
 );
 

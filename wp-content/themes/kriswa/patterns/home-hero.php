@@ -10,9 +10,9 @@
 <!-- wp:group {"align":"full","className":"kr-hero","layout":{"type":"constrained"}} -->
 <div class="wp-block-group alignfull kr-hero"><!-- wp:group {"align":"wide","className":"kr-hero__in","layout":{"type":"default"}} -->
 <div class="wp-block-group alignwide kr-hero__in">
-<!-- wp:paragraph {"className":"kr-hero__eyebrow"} --><p class="kr-hero__eyebrow"><?php esc_html_e( 'Kathmandu, Nepal  |  Residential, Interior and Architecture', 'kriswa' ); ?></p><!-- /wp:paragraph -->
+<!-- wp:paragraph {"className":"kr-hero__eyebrow"} --><p class="kr-hero__eyebrow"><?php esc_html_e( 'Kathmandu, Nepal  |  Residential, Renovation and Valuation', 'kriswa' ); ?></p><!-- /wp:paragraph -->
 <!-- wp:heading {"level":1,"className":"kr-hero__title"} --><h1 class="wp-block-heading kr-hero__title"><?php esc_html_e( 'Homes built with care, designed to last for generations', 'kriswa' ); ?></h1><!-- /wp:heading -->
-<!-- wp:paragraph {"className":"kr-hero__text"} --><p class="kr-hero__text"><?php esc_html_e( 'From first sketch to final handover, our engineers, architects and site teams deliver your house, renovation or interior with honest pricing and on-time results.', 'kriswa' ); ?></p><!-- /wp:paragraph -->
+<!-- wp:paragraph {"className":"kr-hero__text"} --><p class="kr-hero__text"><?php esc_html_e( 'From first sketch to final handover, our engineers, architects and site teams deliver your house or renovation, and value your land and buildings, with honest pricing and on-time results.', 'kriswa' ); ?></p><!-- /wp:paragraph -->
 <?php
 echo kriswa_buttons( // phpcs:ignore WordPress.Security.EscapeOutput
 	kriswa_btn( __( 'Get a Free Quote', 'kriswa' ), kriswa_quote_url() ) .

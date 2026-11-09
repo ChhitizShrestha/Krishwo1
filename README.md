@@ -11,7 +11,8 @@ wp-content/
 
 ## What is included
 
-- Home, About, Services, Projects (filterable portfolio), Blog, FAQ, Contact, Get a Quote pages
+- Home, About, Services, Projects (filterable portfolio), Blog, FAQ, Social, Contact, Get a Quote pages
+- Services: residential construction, land and building valuation, renovation, interior, architecture and consultancy
 - Custom content types: Projects (type, location, status, before/after slider, video), Services, Testimonials, FAQs
 - **Request-a-quote form** (3 steps, works without JavaScript, spam-protected) – leads are saved in WordPress (**Leads** menu, CSV export) and emailed to you
 - Floating WhatsApp and Call buttons, WhatsApp follow-up after a quote request
@@ -27,9 +28,24 @@ wp-content/
 
 1. Copy `wp-content/themes/kriswa` and `wp-content/plugins/kriswa-core` into your WordPress site (WordPress 6.5+, PHP 7.4+; tested on WordPress 7.1, PHP 8.3).
 2. Activate the **Kriswa** theme and the **Kriswa Core** plugin.
-3. Go to **Tools > Kriswa Setup** and click **Run setup**. This creates the pages, sets the static front page, pretty links and the Kathmandu timezone, and adds clearly marked *sample* services, projects, testimonials, FAQs and posts. (CLI: `wp kriswa setup`.)
-4. Go to **Settings > Kriswa** and replace every placeholder: phone, WhatsApp number, email, address, offices, registration numbers, social links, map embed URL, homepage statistics.
-5. Replace the sample content with your real content and photos (set a featured image on every project).
+3. That is all the setup there is: **activating the plugin automatically creates every page the menu links to** (Home, About, Services, Get a Free Quote, FAQ, Social, Contact, Blog), turns on pretty links and the Kathmandu timezone, and adds clearly marked *sample* services, projects, testimonials, FAQs and posts. No link leads to "page not found". If a page is ever deleted, an admin notice offers a one-click fix (**Kriswa Site > Setup & Help**), links fall back to the home page in the meantime, and trashed/missing pages are restored automatically. (CLI: `wp kriswa setup`.)
+4. Open **Kriswa Site > Site Details** (top of the left menu, also reachable from the admin bar on every page) and replace the placeholders.
+5. Replace the sample content with your real content and photos.
+
+### Everyday editing for the site owner
+
+| I want to change... | Go to |
+|---|---|
+| Projects completed, happy clients, years, staff numbers | **Kriswa Site > Site Details > Numbers** |
+| Phone, WhatsApp, email, address, office hours | **Site Details > Phone, email, address** |
+| Facebook / Instagram / TikTok / YouTube links | **Site Details > Social media links** |
+| Offices and map | **Site Details > Offices and map** |
+| Registration, PAN/VAT, licence | **Site Details > Company and registration** |
+| Add a project | **Projects > Add New** (4 simple steps shown at the top; add a cover photo, a type, details and any number of gallery photos) |
+| Testimonials, FAQs, services | the menus of the same name |
+| Quote requests | **Leads** (with CSV export); new ones are counted on the Dashboard |
+
+Project types are Residential, Renovation, Valuation, Interior and Architecture. The sample projects cover residential buildings, renovations and land/building valuation cases; each shows a coloured placeholder until a photo is added.
 
 ### Instagram and TikTok
 

@@ -18,6 +18,7 @@ function kriswa_icon( $name, $size = 28 ) {
 		'ruler'     => '<path d="m4 16 12-12 4 4L8 20z"/><path d="m7 13 2 2M10 10l2 2M13 7l2 2"/>',
 		'tools'     => '<path d="M14.5 6.5a4 4 0 0 0 5 5L10 21l-3-3 9.5-9.5"/><path d="m4 20 3-3"/><path d="M5 5l3 3"/>',
 		'clipboard' => '<rect x="6" y="4" width="12" height="17" rx="1"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/>',
+		'scale'     => '<path d="M12 4v16M7 20h10M4 8h16"/><path d="m6 8-3 7a3.2 3.2 0 0 0 6 0zM18 8l-3 7a3.2 3.2 0 0 0 6 0z"/>',
 		'phone'     => '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
 		'mail'      => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
 		'pin'       => '<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
@@ -128,11 +129,13 @@ add_shortcode(
 			$loc   = get_post_meta( $id, '_kr_location', true );
 			$stat  = get_post_meta( $id, '_kr_status', true );
 			echo '<article class="kr-card kr-project" data-types="' . esc_attr( implode( ' ', $slugs ) ) . '">';
-			echo '<a class="kr-project__media" href="' . esc_url( get_permalink() ) . '" tabindex="-1" aria-hidden="true">';
+			echo '<a class="kr-project__media kr-project__media--' . esc_attr( $slugs ? $slugs[0] : 'none' ) . '" href="' . esc_url( get_permalink() ) . '" tabindex="-1" aria-hidden="true">';
 			if ( has_post_thumbnail() ) {
 				the_post_thumbnail( 'large', array( 'loading' => 'lazy', 'alt' => '' ) );
 			} else {
-				echo '<span class="kr-project__ph">' . kriswa_icon( 'building', 48 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
+				$icons = array( 'residential' => 'home', 'renovation' => 'tools', 'valuation' => 'scale', 'interior' => 'sofa', 'architecture' => 'ruler' );
+				$first = $slugs ? $slugs[0] : '';
+				echo '<span class="kr-project__ph">' . kriswa_icon( isset( $icons[ $first ] ) ? $icons[ $first ] : 'building', 52 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
 			}
 			if ( 'ongoing' === $stat ) {
 				echo '<span class="kr-badge kr-badge--ongoing">' . esc_html__( 'Ongoing', 'kriswa-core' ) . '</span>';
@@ -515,6 +518,33 @@ add_shortcode(
 
 		echo '<div class="kr-form__nav"><button type="button" class="kr-btn kr-btn--ghost" data-prev hidden>' . esc_html__( 'Back', 'kriswa-core' ) . '</button><button type="button" class="kr-btn" data-next hidden>' . esc_html__( 'Next', 'kriswa-core' ) . '</button><button type="submit" class="kr-btn" data-submit>' . esc_html__( 'Request my free quote', 'kriswa-core' ) . '</button></div>';
 		echo '</form></div>';
+		return ob_get_clean();
+	}
+);
+
+/* ------------------------------------------------------------------------- *
+ * [kriswa_project_gallery]  - photo grid from the project's Photos box, tap to enlarge
+ * ------------------------------------------------------------------------- */
+add_shortcode(
+	'kriswa_project_gallery',
+	function () {
+		$id  = get_the_ID();
+		$ids = $id ? array_filter( array_map( 'absint', explode( ',', (string) get_post_meta( $id, '_kr_gallery', true ) ) ) ) : array();
+		if ( ! $ids ) {
+			return '';
+		}
+		ob_start();
+		echo '<h2 class="kr-subhead">' . esc_html__( 'Photos', 'kriswa-core' ) . '</h2><div class="kr-social-feed kr-gallery" data-kr-social><div class="kr-feed">';
+		foreach ( $ids as $att ) {
+			$full = wp_get_attachment_image_url( $att, 'full' );
+			if ( ! $full ) {
+				continue;
+			}
+			$alt = get_post_meta( $att, '_wp_attachment_image_alt', true );
+			$cap = wp_get_attachment_caption( $att );
+			echo '<a class="kr-tile" href="' . esc_url( $full ) . '" data-kind="image" data-src="' . esc_url( $full ) . '" data-caption="' . esc_attr( $cap ? $cap : $alt ) . '" data-platform="Gallery">' . wp_get_attachment_image( $att, 'large', false, array( 'loading' => 'lazy', 'alt' => $alt ) ) . '</a>';
+		}
+		echo '</div>' . kriswa_lightbox_html() . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		return ob_get_clean();
 	}
 );

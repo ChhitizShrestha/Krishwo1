@@ -12,7 +12,8 @@ echo kriswa_section_open(); // phpcs:ignore WordPress.Security.EscapeOutput
 <!-- wp:post-featured-image {"aspectRatio":"16/9","className":"kr-project-hero"} /-->
 <!-- wp:columns {"className":"kr-split kr-split--top kr-split--wide"} -->
 <div class="wp-block-columns kr-split kr-split--top kr-split--wide"><!-- wp:column {"width":"66%"} -->
-<div class="wp-block-column" style="flex-basis:66%"><!-- wp:post-content {"layout":{"type":"default"}} /--></div>
+<div class="wp-block-column" style="flex-basis:66%"><!-- wp:post-content {"layout":{"type":"default"}} /-->
+<?php echo kriswa_sc( 'kriswa_project_gallery' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 <!-- /wp:column -->
 <!-- wp:column {"width":"34%","className":"kr-sidecard"} -->
 <div class="wp-block-column kr-sidecard" style="flex-basis:34%">

@@ -1,42 +1,44 @@
 <?php
 /**
- * One-click setup: creates the pages, menu-free navigation targets, sample services, projects,
- * testimonials, FAQs and posts, and applies sensible site settings.
- * Everything created is clearly marked as sample content to be replaced.
- * Run from Tools > Kriswa Setup, or with WP-CLI: wp kriswa setup
+ * Site setup: creates every page the menus and buttons point to (so no link ever leads to "page not found"),
+ * applies sensible defaults and adds clearly marked SAMPLE content (services, projects, testimonials, FAQs, posts).
+ *
+ * - Runs automatically the first time the plugin is activated.
+ * - Missing or trashed core pages are restored automatically (checked once per plugin version, and whenever an
+ *   administrator opens Kriswa Site > Setup & Help and presses the button).
+ * - WP-CLI: wp kriswa setup
  *
  * @package Kriswa_Core
  */
 
 defined( 'ABSPATH' ) || exit;
 
-add_action(
-	'admin_menu',
-	function () {
-		add_management_page( 'Kriswa Setup', 'Kriswa Setup', 'manage_options', 'kriswa-setup', 'kriswa_setup_page' );
-	}
-);
-
 function kriswa_setup_page() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
-	echo '<div class="wrap"><h1>Kriswa Setup</h1>';
+	echo '<div class="wrap"><h1>Setup &amp; Help</h1>';
 	if ( isset( $_POST['kriswa_setup'] ) && check_admin_referer( 'kriswa_setup' ) ) {
-		$log = kriswa_run_setup( ! empty( $_POST['with_samples'] ) );
-		echo '<div class="notice notice-success"><p><strong>Setup finished.</strong></p><ul style="list-style:disc;margin-left:2em">';
+		$log = kriswa_run_setup( ! empty( $_POST['with_samples'] ), true );
+		echo '<div class="notice notice-success"><p><strong>Done.</strong></p><ul style="list-style:disc;margin-left:2em">';
 		foreach ( $log as $line ) {
 			echo '<li>' . esc_html( $line ) . '</li>';
 		}
 		echo '</ul></div>';
 	}
-	echo '<p>Creates the site pages (Home, About, Services, Get a Quote, FAQ, Contact, Blog), applies recommended settings (static front page, pretty links, Kathmandu timezone) and optionally adds <strong>sample</strong> services, projects, testimonials, FAQs and posts. It is safe to run again: existing items are skipped.</p>';
+	echo '<div class="card" style="max-width:820px"><h2>Fix missing pages</h2><p>The menu, footer and buttons link to these pages: Home, About, Services, Get a Free Quote, FAQ, Social, Contact and Blog. This button re-creates any that are missing or were deleted, and restores any that are in the Trash. It never changes pages that already exist.</p>';
 	echo '<form method="post">';
 	wp_nonce_field( 'kriswa_setup' );
-	echo '<p><label><input type="checkbox" name="with_samples" value="1" checked> Also create sample content (replace it with your real content)</label></p>';
-	echo '<p><button class="button button-primary" name="kriswa_setup" value="1">Run setup</button></p></form>';
+	echo '<p><label><input type="checkbox" name="with_samples" value="1"> Also (re)add the sample services, projects, testimonials, FAQs and posts that were deleted</label></p>';
+	echo '<p><button class="button button-primary" name="kriswa_setup" value="1">Check and fix pages</button></p></form></div>';
+	echo '<div class="card" style="max-width:820px"><h2>How to update things</h2><ul style="list-style:disc;margin-left:1.5em">';
+	echo '<li><strong>Phone, email, address, social links, homepage numbers:</strong> <a href="' . esc_url( admin_url( 'admin.php?page=kriswa-settings' ) ) . '">Kriswa Site &gt; Site Details</a>.</li>';
+	echo '<li><strong>Add a project:</strong> <a href="' . esc_url( admin_url( 'post-new.php?post_type=kriswa_project' ) ) . '">Projects &gt; Add New</a>. Give it a title, a short description, a Featured image and choose a Project Type.</li>';
+	echo '<li><strong>Services, testimonials, FAQs:</strong> the menus of the same name in the left sidebar.</li>';
+	echo '<li><strong>Quote requests:</strong> the <a href="' . esc_url( admin_url( 'edit.php?post_type=kriswa_lead' ) ) . '">Leads</a> menu.</li>';
+	echo '<li><strong>Page wording and layout:</strong> Appearance &gt; Editor.</li></ul></div>';
 	if ( ! function_exists( 'pll_languages_list' ) ) {
-		echo '<p><strong>Nepali:</strong> install and activate the free <em>Polylang</em> plugin, add English and Nepali under Languages, then run this setup again to also create the Nepali pages.</p>';
+		echo '<p><strong>Nepali:</strong> install and activate the free <em>Polylang</em> plugin, add English and Nepali under Languages, then press the button above to also create the Nepali pages.</p>';
 	}
 	echo '</div>';
 }
@@ -49,7 +51,7 @@ function kriswa_find_post( $type, $slug ) {
 		array(
 			'name'           => $slug,
 			'post_type'      => $type,
-			'post_status'    => 'any',
+			'post_status'    => array( 'publish', 'draft', 'pending', 'private', 'future', 'trash' ),
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
 			'lang'           => '', // Polylang: search all languages.
@@ -64,6 +66,12 @@ function kriswa_find_post( $type, $slug ) {
 function kriswa_seed( $type, $slug, $title, $content = '', $meta = array(), $extra = array(), &$log = array() ) {
 	$id = kriswa_find_post( $type, $slug );
 	if ( $id ) {
+		// A page that was trashed by mistake would leave menu links broken: bring it back.
+		if ( 'trash' === get_post_status( $id ) ) {
+			wp_untrash_post( $id );
+			wp_publish_post( $id );
+			$log[] = 'Restored ' . $type . ': ' . get_the_title( $id );
+		}
 		return $id;
 	}
 	$id = wp_insert_post(
@@ -115,11 +123,11 @@ function kriswa_seed_pair( $type, $slug, $en, $ne, $meta = array(), &$log = arra
 	return $en_id;
 }
 
-function kriswa_run_setup( $with_samples = true ) {
-	$log = array();
-
-	/* ---- Pages ---- */
-	$pages = array(
+/**
+ * Core pages every menu item and button points to: slug => [English title, Nepali title, template].
+ */
+function kriswa_core_pages() {
+	return array(
 		'home'        => array( 'Home', 'गृहपृष्ठ', '' ),
 		'about'       => array( 'About Us', 'हाम्रो बारेमा', 'page-about' ),
 		'services'    => array( 'Our Services', 'हाम्रा सेवाहरू', 'page-services' ),
@@ -129,62 +137,118 @@ function kriswa_run_setup( $with_samples = true ) {
 		'contact'     => array( 'Contact Us', 'सम्पर्क', 'page-contact' ),
 		'blog'        => array( 'Blog', 'ब्लग', '' ),
 	);
+}
+
+/**
+ * Create any missing core page and make sure Home and Blog are wired up. Never edits existing pages.
+ */
+function kriswa_ensure_pages( &$log = array() ) {
 	$ids = array();
-	foreach ( $pages as $slug => $p ) {
-		$meta = $p[2] ? array( '_wp_page_template' => $p[2] ) : array();
-		$ids[ $slug ] = kriswa_seed_pair(
-			'page',
-			$slug,
-			array( 'title' => $p[0] ),
-			array( 'title' => $p[1] ),
-			$meta,
-			$log
-		);
+	foreach ( kriswa_core_pages() as $slug => $p ) {
+		$meta         = $p[2] ? array( '_wp_page_template' => $p[2] ) : array();
+		$ids[ $slug ] = kriswa_seed_pair( 'page', $slug, array( 'title' => $p[0] ), array( 'title' => $p[1] ), $meta, $log );
 	}
-	if ( $ids['home'] ) {
+	$front = (int) get_option( 'page_on_front' );
+	if ( $ids['home'] && ( 'page' !== get_option( 'show_on_front' ) || ! $front || 'publish' !== get_post_status( $front ) ) ) {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $ids['home'] );
-		$log[] = 'Set static front page.';
+		$log[] = 'Set Home as the front page.';
 	}
-	if ( $ids['blog'] ) {
+	$posts = (int) get_option( 'page_for_posts' );
+	if ( $ids['blog'] && ( ! $posts || 'publish' !== get_post_status( $posts ) ) ) {
 		update_option( 'page_for_posts', $ids['blog'] );
 		$log[] = 'Set Blog as the posts page.';
 	}
-
-	/* ---- Site settings ---- */
-	update_option( 'blogname', 'Kriswa Consultant and Construction Pvt. Ltd.' );
-	update_option( 'blogdescription', 'Building trusted homes and spaces across Nepal' );
-	update_option( 'timezone_string', 'Asia/Kathmandu' );
-	update_option( 'permalink_structure', '/%postname%/' );
-	update_option( 'start_of_week', 0 );
-	update_option( 'default_comment_status', 'closed' );
-	$log[] = 'Applied site title, Kathmandu timezone, pretty permalinks, Sunday week start.';
-
-	/* ---- Taxonomy terms ---- */
-	foreach ( array( 'Residential', 'Interior', 'Renovation', 'Architecture' ) as $t ) {
+	foreach ( array( 'Residential', 'Renovation', 'Valuation', 'Interior', 'Architecture' ) as $t ) {
 		if ( ! term_exists( $t, 'kriswa_project_type' ) ) {
 			wp_insert_term( $t, 'kriswa_project_type' );
 		}
 	}
+	return $ids;
+}
 
-	if ( $with_samples ) {
-		kriswa_seed_samples( $log );
+/**
+ * @param bool $with_samples Add the sample content.
+ * @param bool $manual       True when an administrator pressed the button (re-adds samples without the "already done" flag).
+ */
+function kriswa_run_setup( $with_samples = true, $manual = false ) {
+	$log = array();
+	kriswa_ensure_pages( $log );
+
+	// Site defaults: only the very first time, so later changes by the client are never overwritten.
+	if ( ! get_option( 'kriswa_setup_done' ) ) {
+		update_option( 'blogname', 'Kriswa Consultant and Construction Pvt. Ltd.' );
+		update_option( 'blogdescription', 'Building trusted homes and spaces across Nepal' );
+		update_option( 'timezone_string', 'Asia/Kathmandu' );
+		update_option( 'start_of_week', 0 );
+		update_option( 'default_comment_status', 'closed' );
+		$log[] = 'Applied site title, Kathmandu timezone and Sunday week start.';
+	}
+	if ( ! get_option( 'permalink_structure' ) ) {
+		update_option( 'permalink_structure', '/%postname%/' );
+		$log[] = 'Switched to pretty links (/about/ instead of ?page_id=2).';
 	}
 
+	if ( $with_samples && ( $manual || ! get_option( 'kriswa_samples_done' ) ) ) {
+		kriswa_seed_samples( $log );
+		update_option( 'kriswa_samples_done', 1, false );
+	}
+
+	update_option( 'kriswa_setup_done', 1, false );
+	update_option( 'kriswa_pages_ver', KRISWA_CORE_VERSION, false );
 	flush_rewrite_rules();
-	$log[] = 'Refreshed permalinks. Visit Settings > Kriswa to replace the placeholder contact details.';
+	$log[] = 'Refreshed links. Next: open Kriswa Site > Site Details and replace the placeholder phone, email, address and numbers.';
 	return $log;
+}
+
+/** Automatic safety net: first run after activation, then a once-per-version page check. */
+add_action(
+	'admin_init',
+	function () {
+		if ( ! current_user_can( 'manage_options' ) || wp_doing_ajax() ) {
+			return;
+		}
+		if ( ! get_option( 'kriswa_setup_done' ) ) {
+			kriswa_run_setup( true );
+		} elseif ( get_option( 'kriswa_pages_ver' ) !== KRISWA_CORE_VERSION ) {
+			$log = array();
+			kriswa_ensure_pages( $log );
+			update_option( 'kriswa_pages_ver', KRISWA_CORE_VERSION, false );
+			flush_rewrite_rules();
+		}
+	},
+	20
+);
+
+/** Sample bodies for projects, by type (English, Nepali). */
+function kriswa_sample_project_body( $type, $lang ) {
+	$en = array(
+		'Residential'  => 'Sample project. Describe the home here: plot size, number of floors, design style, structure and finishes, and how the family uses the space. Add site and finished photos with the Photos box.',
+		'Renovation'   => 'Sample project. Describe the condition before renovation, what was repaired, strengthened or extended, and the result. Use the Before and After photo fields for a before/after slider.',
+		'Valuation'    => 'Sample valuation case. Describe the purpose (for example a bank loan, sale or partition), the property inspected, the documents reviewed, the method used and the outcome. Do not publish client names or confidential figures without permission.',
+		'Interior'     => 'Sample project. Describe the brief, the layout changes, the materials and furniture chosen, and the finished result.',
+		'Architecture' => 'Sample project. Describe the design concept, drawings and approvals handled, and the current stage of the project.',
+	);
+	$ne = array(
+		'Residential'  => 'नमुना परियोजना। यहाँ घरको विवरण लेख्नुहोस्: जग्गाको आकार, तला, डिजाइन शैली, संरचना र फिनिसिङ। फोटो बक्सबाट साइट र सम्पन्न घरका तस्बिर थप्नुहोस्।',
+		'Renovation'   => 'नमुना परियोजना। नवीकरणअघिको अवस्था, के मर्मत, बलियो वा थप गरियो र नतिजा लेख्नुहोस्। अघि/पछिको स्लाइडरका लागि अघि र पछिको फोटो थप्नुहोस्।',
+		'Valuation'    => 'नमुना मूल्याङ्कन विवरण। उद्देश्य (जस्तै बैंक ऋण, खरिद-बिक्री वा बाँडफाँड), निरीक्षण गरिएको सम्पत्ति, जाँचिएका कागजात, प्रयोग गरिएको विधि र नतिजा लेख्नुहोस्। अनुमतिबिना ग्राहकको नाम वा गोप्य रकम प्रकाशित नगर्नुहोस्।',
+		'Interior'     => 'नमुना परियोजना। आवश्यकता, कोठाको संरचना, रोजिएका सामग्री र फर्निचर तथा सम्पन्न नतिजा लेख्नुहोस्।',
+		'Architecture' => 'नमुना परियोजना। डिजाइन अवधारणा, तयार गरिएका नक्सा र स्वीकृति तथा परियोजनाको हालको चरण लेख्नुहोस्।',
+	);
+	$t = 'ne' === $lang ? $ne : $en;
+	return "<!-- wp:paragraph -->\n<p>" . $t[ $type ] . "</p>\n<!-- /wp:paragraph -->";
 }
 
 function kriswa_seed_samples( &$log ) {
 	/* ---- Services ---- */
 	$services = array(
-		array( 'new-house-construction', 'home', 0, 'New House Construction', 'नयाँ घर निर्माण',
+		array( 'residential-construction', 'home', 0, 'Residential Construction', 'आवासीय निर्माण',
 			'Complete turnkey construction of your home, from site preparation and foundation to structure, finishing and handover.',
 			'जग्गाको तयारीदेखि अन्तिम फिनिसिङसम्म, तपाईंको घरको सम्पूर्ण निर्माण (टर्नकी) सेवा।' ),
-		array( 'apartment-commercial-buildings', 'building', 1, 'Apartment and Commercial Buildings', 'अपार्टमेन्ट तथा व्यावसायिक भवन',
-			'Safe, efficient construction of apartments, offices, shops and mixed-use buildings, delivered on schedule.',
-			'अपार्टमेन्ट, कार्यालय, पसल र मिश्रित प्रयोगका भवनको सुरक्षित र समयमै निर्माण।' ),
+		array( 'land-building-valuation', 'scale', 1, 'Land and Building Valuation', 'जग्गा तथा भवन मूल्याङ्कन',
+			'Independent valuation reports for land and buildings after a site inspection and document review, for bank loans, buying, selling, partition and insurance.',
+			'साइट निरीक्षण र कागजात जाँचपछि बैंक ऋण, खरिद-बिक्री, बाँडफाँड र बीमाका लागि जग्गा तथा भवनको स्वतन्त्र मूल्याङ्कन प्रतिवेदन।' ),
 		array( 'renovation-extension', 'tools', 2, 'Renovation and Extension', 'नवीकरण तथा थप निर्माण',
 			'Give an older home or building new life: structural checks, extra floors, layout changes and modern finishes.',
 			'पुराना घर र भवनलाई नयाँ जीवन दिने सेवा: संरचनात्मक जाँच, थप तला, कोठाको पुनर्संरचना र आधुनिक फिनिसिङ।' ),
@@ -202,38 +266,44 @@ function kriswa_seed_samples( &$log ) {
 		kriswa_seed_pair(
 			'kriswa_service',
 			$s[0],
-			array( 'title' => $s[3], 'content' => "<!-- wp:paragraph -->\n<p>{$s[5]}</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>Sample text: describe your process, materials, guarantees and typical timelines for this service here.</p>\n<!-- /wp:paragraph -->", 'extra' => array( 'post_excerpt' => $s[5], 'menu_order' => $s[2] ) ),
+			array( 'title' => $s[3], 'content' => "<!-- wp:paragraph -->\n<p>{$s[5]}</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>Sample text: describe your process, what the client receives and typical timelines for this service here.</p>\n<!-- /wp:paragraph -->", 'extra' => array( 'post_excerpt' => $s[5], 'menu_order' => $s[2] ) ),
 			array( 'title' => $s[4], 'content' => "<!-- wp:paragraph -->\n<p>{$s[6]}</p>\n<!-- /wp:paragraph -->", 'extra' => array( 'post_excerpt' => $s[6], 'menu_order' => $s[2] ) ),
 			array( '_kr_icon' => $s[1] ),
 			$log
 		);
 	}
 
-	/* ---- Projects ---- */
+	/* ---- Projects: residential, renovation and valuation work, plus interior and architecture ---- */
 	$projects = array(
-		array( 'modern-family-home-budhanilkantha', 'Residential', 'Modern Family Home (sample)', 'आधुनिक पारिवारिक घर (नमुना)', 'Budhanilkantha, Kathmandu', '2025', '3,200 sq. ft.', 'completed' ),
-		array( 'lakeside-villa-pokhara', 'Residential', 'Lakeside Villa (sample)', 'तालकिनारको भिल्ला (नमुना)', 'Lakeside, Pokhara', '2024', '4,100 sq. ft.', 'completed' ),
-		array( 'apartment-living-room-makeover', 'Interior', 'Apartment Interior (sample)', 'अपार्टमेन्ट इन्टेरियर (नमुना)', 'Lalitpur', '2025', '1,450 sq. ft.', 'completed' ),
-		array( 'heritage-house-renovation-bhaktapur', 'Renovation', 'Heritage House Renovation (sample)', 'पुरानो घर नवीकरण (नमुना)', 'Bhaktapur', '2024', '2,800 sq. ft.', 'completed' ),
-		array( 'office-building-baneshwor', 'Architecture', 'Office Building Design (sample)', 'कार्यालय भवन डिजाइन (नमुना)', 'New Baneshwor, Kathmandu', '2025', '9,500 sq. ft.', 'ongoing' ),
-		array( 'duplex-homes-bhaisepati', 'Residential', 'Duplex Homes (sample)', 'डुप्लेक्स घर (नमुना)', 'Bhaisepati, Lalitpur', '2023', '2 x 2,200 sq. ft.', 'completed' ),
+		// slug, type, title, ne title, location, year, area, status.
+		array( 'modern-family-home-budhanilkantha', 'Residential', 'Modern Family Home, Budhanilkantha (sample)', 'आधुनिक पारिवारिक घर, बुढानीलकण्ठ (नमुना)', 'Budhanilkantha, Kathmandu', '2025', '3,200 sq. ft.', 'completed' ),
+		array( 'duplex-homes-bhaisepati', 'Residential', 'Duplex Homes, Bhaisepati (sample)', 'डुप्लेक्स घर, भैसेपाटी (नमुना)', 'Bhaisepati, Lalitpur', '2024', '2 x 2,200 sq. ft.', 'completed' ),
+		array( 'three-storey-residence-tokha', 'Residential', 'Three-storey Residence, Tokha (sample)', 'तीन तले आवास, टोखा (नमुना)', 'Tokha, Kathmandu', '2024', '2,900 sq. ft.', 'completed' ),
+		array( 'family-house-imadol', 'Residential', 'Family House, Imadol (sample)', 'पारिवारिक घर, इमाडोल (नमुना)', 'Imadol, Lalitpur', '2026', '2,400 sq. ft.', 'ongoing' ),
+		array( 'heritage-house-renovation-bhaktapur', 'Renovation', 'Heritage House Renovation, Bhaktapur (sample)', 'पुरानो घर नवीकरण, भक्तपुर (नमुना)', 'Bhaktapur', '2024', '2,800 sq. ft.', 'completed' ),
+		array( 'second-floor-extension-chabahil', 'Renovation', 'Second-floor Extension, Chabahil (sample)', 'दोस्रो तला थप निर्माण, चाबहिल (नमुना)', 'Chabahil, Kathmandu', '2025', '1,100 sq. ft.', 'completed' ),
+		array( 'kitchen-bathroom-renovation-patan', 'Renovation', 'Kitchen and Bathroom Renovation, Patan (sample)', 'किचन र बाथरुम नवीकरण, पाटन (नमुना)', 'Patan, Lalitpur', '2025', '650 sq. ft.', 'completed' ),
+		array( 'residential-valuation-bank-loan-kathmandu', 'Valuation', 'Residential Land and Building Valuation, Kathmandu (sample)', 'आवासीय जग्गा तथा भवन मूल्याङ्कन, काठमाडौं (नमुना)', 'Kathmandu', '2025', '5 aana plot with house', 'completed' ),
+		array( 'commercial-building-valuation-baneshwor', 'Valuation', 'Commercial Building Valuation, New Baneshwor (sample)', 'व्यावसायिक भवन मूल्याङ्कन, नयाँ बानेश्वर (नमुना)', 'New Baneshwor, Kathmandu', '2025', '12,000 sq. ft.', 'completed' ),
+		array( 'land-valuation-partition-lalitpur', 'Valuation', 'Land Valuation for Partition, Lalitpur (sample)', 'बाँडफाँडका लागि जग्गा मूल्याङ्कन, ललितपुर (नमुना)', 'Lalitpur', '2026', '8 aana plot', 'completed' ),
+		array( 'apartment-interior-lalitpur', 'Interior', 'Apartment Interior, Lalitpur (sample)', 'अपार्टमेन्ट इन्टेरियर, ललितपुर (नमुना)', 'Lalitpur', '2025', '1,450 sq. ft.', 'completed' ),
+		array( 'office-building-design-baneshwor', 'Architecture', 'Office Building Design, New Baneshwor (sample)', 'कार्यालय भवन डिजाइन, नयाँ बानेश्वर (नमुना)', 'New Baneshwor, Kathmandu', '2026', '9,500 sq. ft.', 'ongoing' ),
 	);
-	foreach ( $projects as $p ) {
-		$body_en = "<!-- wp:paragraph -->\n<p>Sample project. Replace this with the story of the project: the brief, the challenges, the materials used and the result. Add photos using the Gallery block.</p>\n<!-- /wp:paragraph -->";
-		$body_ne = "<!-- wp:paragraph -->\n<p>नमुना परियोजना। यहाँ परियोजनाको विवरण, चुनौती, प्रयोग गरिएका सामग्री र नतिजा लेख्नुहोस्। तस्बिरहरू ग्यालरी ब्लकबाट थप्नुहोस्।</p>\n<!-- /wp:paragraph -->";
-		$id      = kriswa_seed_pair(
+	foreach ( $projects as $n => $p ) {
+		// Stagger dates so the list shows in the order above (newest first); real projects simply use their publish date.
+		$when = gmdate( 'Y-m-d H:i:s', time() - ( $n * HOUR_IN_SECONDS ) );
+		$id   = kriswa_seed_pair(
 			'kriswa_project',
 			$p[0],
-			array( 'title' => $p[2], 'content' => $body_en, 'extra' => array( 'post_excerpt' => 'Sample project in ' . $p[4] . '.' ) ),
-			array( 'title' => $p[3], 'content' => $body_ne, 'extra' => array( 'post_excerpt' => $p[4] . ' मा नमुना परियोजना।' ) ),
+			array( 'title' => $p[2], 'content' => kriswa_sample_project_body( $p[1], 'en' ), 'extra' => array( 'post_excerpt' => 'Sample ' . strtolower( $p[1] ) . ' project in ' . $p[4] . '.', 'post_date_gmt' => $when, 'post_date' => get_date_from_gmt( $when ) ) ),
+			array( 'title' => $p[3], 'content' => kriswa_sample_project_body( $p[1], 'ne' ), 'extra' => array( 'post_excerpt' => $p[4] . ' मा नमुना परियोजना।', 'post_date_gmt' => $when, 'post_date' => get_date_from_gmt( $when ) ) ),
 			array( '_kr_location' => $p[4], '_kr_year' => $p[5], '_kr_area' => $p[6], '_kr_status' => $p[7] ),
 			$log
 		);
-		if ( $id ) {
+		if ( $id && ! has_term( '', 'kriswa_project_type', $id ) ) {
 			wp_set_object_terms( $id, $p[1], 'kriswa_project_type' );
 		}
 	}
-
 	/* ---- Testimonials (clearly marked samples) ---- */
 	$tests = array(
 		array( 'sample-client-1', 'Sample Client A', 'नमुना ग्राहक क', 'Sample testimonial: the team explained every cost upfront and finished on time. Replace this with a real client quote.', 'नमुना प्रतिक्रिया: टोलीले सुरुमै सबै खर्च बुझायो र समयमै काम सक्यो। यहाँ वास्तविक ग्राहकको प्रतिक्रिया राख्नुहोस्।', 'Homeowner, Kathmandu (sample)', 'घरधनी, काठमाडौं (नमुना)' ),
@@ -274,6 +344,9 @@ function kriswa_seed_samples( &$log ) {
 		array( 'faq-visit', 'Can I visit your ongoing sites or see past work?', 'के म तपाईंहरूका चलिरहेका साइट वा पुराना काम हेर्न सक्छु?',
 			'Of course. Contact us and we will arrange a visit to a completed or ongoing project so you can see our quality first-hand.',
 			'अवश्य। हामीलाई सम्पर्क गर्नुहोस्, पूरा भएका वा चलिरहेका परियोजना हेर्न भ्रमणको व्यवस्था गर्छौं।' ),
+		array( 'faq-valuation', 'What does a land and building valuation report include?', 'जग्गा तथा भवन मूल्याङ्कन प्रतिवेदनमा के-के हुन्छ?',
+			'A valuation report gives the estimated market value of a plot and any building on it, based on a site inspection, a review of ownership and land documents, local market comparisons and construction cost. It is commonly used for bank loans, buying or selling, partition and insurance. (Sample answer: please edit to match the reports you provide.)',
+			'मूल्याङ्कन प्रतिवेदनले साइट निरीक्षण, स्वामित्व तथा जग्गा कागजातको जाँच, स्थानीय बजार तुलना र निर्माण लागतका आधारमा जग्गा र त्यसमाथिको भवनको अनुमानित बजार मूल्य दिन्छ। यो प्रायः बैंक ऋण, खरिद-बिक्री, बाँडफाँड र बीमाका लागि प्रयोग हुन्छ। (नमुना उत्तर: कृपया तपाईंले दिने प्रतिवेदनअनुसार सम्पादन गर्नुहोस्।)' ),
 		array( 'faq-quote', 'How do I get a quote?', 'कोटेसन कसरी पाउने?',
 			'Fill in the quote form on this website, call us, or message us on WhatsApp. We will reply within one working day.',
 			'यस वेबसाइटको कोटेसन फारम भर्नुहोस्, फोन गर्नुहोस् वा ह्वाट्सएपमा सन्देश पठाउनुहोस्। हामी एक कार्यदिनभित्र जवाफ दिन्छौं।' ),

@@ -30,6 +30,10 @@ function kriswa_default_options() {
 		'nec_no'           => 'NEC Reg. No. 0000',
 		'license_class'    => 'Class A Contractor (placeholder)',
 		'founded_year'     => '2015',
+		'stat_years'       => '10',
+		'stat_projects'    => '100',
+		'stat_clients'     => '80',
+		'stat_team'        => '25',
 		'facebook'         => 'https://facebook.com/',
 		'instagram'        => 'https://instagram.com/',
 		'youtube'          => 'https://youtube.com/',
@@ -100,8 +104,9 @@ function kriswa_tel_url() {
  */
 function kriswa_page_url( $slug ) {
 	$page = get_page_by_path( $slug );
-	if ( ! $page ) {
-		return home_url( '/' . $slug . '/' );
+	if ( ! $page || 'publish' !== $page->post_status ) {
+		// Never link to a page that does not exist: fall back to the home page (the admin sees a notice to fix it).
+		return function_exists( 'pll_home_url' ) ? pll_home_url() : home_url( '/' );
 	}
 	$id = $page->ID;
 	if ( function_exists( 'pll_get_post' ) ) {

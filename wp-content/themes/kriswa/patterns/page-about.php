@@ -14,7 +14,7 @@ echo kriswa_section_open(); // phpcs:ignore WordPress.Security.EscapeOutput
 <div class="wp-block-column">
 <!-- wp:paragraph {"className":"kr-eyebrow"} --><p class="kr-eyebrow"><?php esc_html_e( 'Our story', 'kriswa' ); ?></p><!-- /wp:paragraph -->
 <!-- wp:heading --><h2 class="wp-block-heading"><?php esc_html_e( 'A Kathmandu company that builds with honesty', 'kriswa' ); ?></h2><!-- /wp:heading -->
-<!-- wp:paragraph --><p><?php esc_html_e( 'Kriswa Consultant and Construction Pvt. Ltd. is a Kathmandu-based team of engineers, architects and builders. We help families and businesses plan, design and build homes and spaces that are safe, beautiful and good value.', 'kriswa' ); ?></p><!-- /wp:paragraph -->
+<!-- wp:paragraph --><p><?php esc_html_e( 'Kriswa Consultant and Construction Pvt. Ltd. is a Kathmandu-based team of engineers, architects and builders. We build and renovate homes, and we value land and buildings, so families and businesses can decide with confidence.', 'kriswa' ); ?></p><!-- /wp:paragraph -->
 <!-- wp:paragraph --><p><?php esc_html_e( 'We believe construction should be transparent. You will always know what is being built, what it costs and when it will be ready. Replace this text with your own company history, founders and milestones.', 'kriswa' ); ?></p><!-- /wp:paragraph -->
 </div>
 <!-- /wp:column -->

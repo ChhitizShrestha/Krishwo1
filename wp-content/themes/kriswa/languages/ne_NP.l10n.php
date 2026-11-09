@@ -122,5 +122,11 @@ return array(
 		'Instagram and TikTok' => 'इन्स्टाग्राम र टिकटक',
 		'Life on our construction sites' => 'हाम्रा निर्माण स्थलको जीवन',
 		'Progress photos, finished homes and short videos from our teams. Tap any post to view it here.' => 'हाम्रा टोलीका प्रगतिका फोटो, सम्पन्न घर र छोटा भिडियो। कुनै पनि पोस्टमा थिचेर यहीँ हेर्नुहोस्।',
+		'Kathmandu, Nepal  |  Residential, Renovation and Valuation' => 'काठमाडौं, नेपाल  |  आवासीय, नवीकरण र मूल्याङ्कन',
+		'From first sketch to final handover, our engineers, architects and site teams deliver your house or renovation, and value your land and buildings, with honest pricing and on-time results.' => 'पहिलो स्केचदेखि अन्तिम हस्तान्तरणसम्म, हाम्रा इन्जिनियर, वास्तुकार र साइट टोलीले इमानदार मूल्य र समयमै नतिजासहित तपाईंको घर वा नवीकरण पूरा गर्छन् र जग्गा तथा भवनको मूल्याङ्कन गर्छन्।',
+		'Kriswa Consultant and Construction Pvt. Ltd. is a Kathmandu-based team of engineers, architects and builders. We build and renovate homes, and we value land and buildings, so families and businesses can decide with confidence.' => 'क्रिस्वा कन्सल्टेन्ट एण्ड कन्स्ट्रक्सन प्रा. लि. काठमाडौंमा आधारित इन्जिनियर, वास्तुकार र निर्माणकर्ताको टोली हो। हामी घर बनाउँछौं र नवीकरण गर्छौं, र जग्गा तथा भवनको मूल्याङ्कन गर्छौं, ताकि परिवार र व्यवसायले विश्वासका साथ निर्णय गर्न सकून्।',
+		'Residential construction' => 'आवासीय निर्माण',
+		'Land and building valuation' => 'जग्गा तथा भवन मूल्याङ्कन',
+		'Homes, renovations and valuation work delivered with care. Filter by type to explore.' => 'सावधानीपूर्वक सम्पन्न घर, नवीकरण र मूल्याङ्कन कार्य। प्रकारअनुसार छानेर हेर्नुहोस्।',
 	),
 );

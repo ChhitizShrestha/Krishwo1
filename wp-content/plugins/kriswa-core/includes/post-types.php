@@ -25,8 +25,8 @@ function kriswa_register_post_types() {
 			'menu_icon'    => 'dashicons-building',
 			'menu_position'=> 21,
 			'show_in_rest' => true,
-			'supports'     => array( 'title', 'editor', 'excerpt', 'thumbnail', 'revisions' ),
-			'taxonomies'   => array( 'kriswa_project_type', 'kriswa_location' ),
+			'supports'     => array( 'title', 'editor', 'thumbnail', 'revisions' ),
+			'taxonomies'   => array( 'kriswa_project_type' ),
 		)
 	);
 
@@ -55,6 +55,7 @@ function kriswa_register_post_types() {
 			),
 			'hierarchical' => false,
 			'public'       => true,
+			'show_ui'      => false,
 			'show_in_rest' => true,
 			'rewrite'      => array( 'slug' => 'project-location' ),
 		)
@@ -193,6 +194,7 @@ function kriswa_icon_choices() {
 		'ruler'     => __( 'Architecture / design', 'kriswa-core' ),
 		'tools'     => __( 'Renovation', 'kriswa-core' ),
 		'clipboard' => __( 'Consultancy', 'kriswa-core' ),
+		'scale'     => __( 'Valuation', 'kriswa-core' ),
 	);
 }
 

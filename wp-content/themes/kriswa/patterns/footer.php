@@ -18,11 +18,11 @@ $links = array(
 	array( __( 'Contact', 'kriswa' ), kriswa_u( 'contact' ) ),
 );
 $svc   = array(
-	array( __( 'New house construction', 'kriswa' ), kriswa_quote_url( 'new-house' ) ),
+	array( __( 'Residential construction', 'kriswa' ), kriswa_quote_url( 'new-house' ) ),
+	array( __( 'Land and building valuation', 'kriswa' ), kriswa_quote_url( 'valuation' ) ),
 	array( __( 'Renovation and extension', 'kriswa' ), kriswa_quote_url( 'renovation' ) ),
 	array( __( 'Interior design', 'kriswa' ), kriswa_quote_url( 'interior' ) ),
 	array( __( 'Architectural design', 'kriswa' ), kriswa_quote_url( 'architecture' ) ),
-	array( __( 'Consultancy and supervision', 'kriswa' ), kriswa_quote_url( 'consultancy' ) ),
 );
 ?>
 <!-- wp:group {"align":"full","className":"kr-footer","layout":{"type":"constrained"}} -->

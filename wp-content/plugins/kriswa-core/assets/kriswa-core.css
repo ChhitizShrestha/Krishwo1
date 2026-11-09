@@ -203,3 +203,11 @@
 	.kr-card, .kr-project__media img, .kr-tile img, .kr-btn, .kr-float__btn { transition: none; }
 	.kr-card:hover { transform: none; }
 }
+
+/* Sample/empty project cards get a type-specific colour until a photo is added */
+.kr-project__media--renovation { background: linear-gradient(135deg, #1d1d1f, #2b6a8f); }
+.kr-project__media--valuation { background: linear-gradient(135deg, #1d1d1f, #3a4a8f); }
+.kr-project__media--interior { background: linear-gradient(135deg, #1d1d1f, #6a3f9b); }
+.kr-project__media--architecture { background: linear-gradient(135deg, #1d1d1f, #1f6f78); }
+.kr-gallery .kr-feed { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+.kr-gallery .kr-tile { aspect-ratio: 4 / 3; }
