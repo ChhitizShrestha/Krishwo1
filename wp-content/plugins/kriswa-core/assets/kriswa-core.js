@@ -220,18 +220,20 @@
 		if ( ! dlg || typeof dlg.showModal !== 'function' ) { return; } // Tiles stay normal links.
 		var body = dlg.querySelector( '.kr-lightbox__body' );
 		var cap = dlg.querySelector( '.kr-lightbox__caption' );
+		var count = dlg.querySelector( '.kr-lightbox__count' );
 		var link = dlg.querySelector( '.kr-lightbox__link' );
+		var prevBtn = dlg.querySelector( '.kr-lightbox__nav--prev' );
+		var nextBtn = dlg.querySelector( '.kr-lightbox__nav--next' );
+		var tiles = [];
+		var index = 0;
 
 		function close() { if ( dlg.open ) { dlg.close(); } }
-		dlg.querySelector( '.kr-lightbox__close' ).addEventListener( 'click', close );
-		dlg.addEventListener( 'click', function ( e ) { if ( e.target === dlg ) { close(); } } );
-		dlg.addEventListener( 'close', function () { body.textContent = ''; } ); // Stops playback.
 
-		root.addEventListener( 'click', function ( e ) {
-			var tile = e.target.closest( '.kr-tile' );
-			if ( ! tile ) { return; }
+		// Fill the viewer with one tile (photo, video or TikTok). Navigating replaces the content, which also stops any playing video.
+		function show( i ) {
+			index = ( i + tiles.length ) % tiles.length;
+			var tile = tiles[ index ];
 			var kind = tile.getAttribute( 'data-kind' );
-			e.preventDefault();
 			body.textContent = '';
 			if ( kind === 'video' ) {
 				var v = document.createElement( 'video' );
@@ -246,6 +248,8 @@
 				f.src = 'https://www.tiktok.com/embed/v2/' + id;
 				f.allow = 'autoplay; fullscreen; encrypted-media';
 				f.allowFullscreen = true;
+				f.loading = 'lazy';
+				f.referrerPolicy = 'strict-origin-when-cross-origin';
 				f.title = tile.getAttribute( 'data-caption' ) || 'TikTok';
 				body.appendChild( f );
 			} else {
@@ -253,10 +257,52 @@
 				im.src = tile.getAttribute( 'data-src' );
 				im.alt = tile.getAttribute( 'data-caption' ) || '';
 				body.appendChild( im );
+				// Warm the next photo so moving forward feels instant.
+				var nx = tiles[ ( index + 1 ) % tiles.length ];
+				if ( nx && nx.getAttribute( 'data-kind' ) === 'image' ) { new Image().src = nx.getAttribute( 'data-src' ); }
 			}
 			cap.textContent = tile.getAttribute( 'data-caption' ) || '';
-			link.href = tile.href;
-			link.textContent = ( tile.getAttribute( 'data-platform' ) === 'TikTok' ? 'Watch on TikTok' : 'View on Instagram' ) + ' ›';
+			var plat = tile.getAttribute( 'data-platform' );
+			// Only Instagram and TikTok posts link back to their platform. Project photos never do.
+			link.hidden = ( plat !== 'Instagram' && plat !== 'TikTok' );
+			if ( ! link.hidden ) {
+				link.href = tile.href;
+				link.textContent = ( plat === 'TikTok' ? 'Watch on TikTok' : 'View on Instagram' ) + ' \u203A';
+			}
+			var many = tiles.length > 1;
+			prevBtn.hidden = ! many;
+			nextBtn.hidden = ! many;
+			count.textContent = many ? ( index + 1 ) + ' / ' + tiles.length : '';
+		}
+
+		dlg.querySelector( '.kr-lightbox__close' ).addEventListener( 'click', close );
+		prevBtn.addEventListener( 'click', function () { show( index - 1 ); } );
+		nextBtn.addEventListener( 'click', function () { show( index + 1 ); } );
+		dlg.addEventListener( 'click', function ( e ) { if ( e.target === dlg ) { close(); } } );
+		dlg.addEventListener( 'close', function () { body.textContent = ''; } ); // Stops playback.
+		dlg.addEventListener( 'keydown', function ( e ) {
+			if ( tiles.length < 2 ) { return; }
+			if ( e.key === 'ArrowRight' ) { e.preventDefault(); show( index + 1 ); }
+			if ( e.key === 'ArrowLeft' ) { e.preventDefault(); show( index - 1 ); }
+		} );
+		// Swipe left / right on touch screens.
+		var x0 = null;
+		dlg.addEventListener( 'touchstart', function ( e ) { x0 = e.touches.length === 1 ? e.touches[ 0 ].clientX : null; }, { passive: true } );
+		dlg.addEventListener( 'touchend', function ( e ) {
+			if ( x0 === null || tiles.length < 2 ) { return; }
+			var dx = e.changedTouches[ 0 ].clientX - x0;
+			x0 = null;
+			if ( Math.abs( dx ) > 50 ) { show( index + ( dx < 0 ? 1 : -1 ) ); }
+		}, { passive: true } );
+
+		root.addEventListener( 'click', function ( e ) {
+			var tile = e.target.closest( '.kr-tile' );
+			if ( ! tile ) { return; }
+			e.preventDefault();
+			// Navigate within the group the tile belongs to (this gallery, or the Instagram / TikTok tab it is in).
+			var group = tile.closest( '.kr-feed' ) || root;
+			tiles = Array.prototype.slice.call( group.querySelectorAll( '.kr-tile' ) );
+			show( tiles.indexOf( tile ) );
 			dlg.showModal();
 		} );
 	} );
