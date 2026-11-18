@@ -181,3 +181,8 @@ add_action( 'admin_head', function () {
 		echo '<link rel="icon" href="' . esc_url( get_theme_file_uri( 'assets/images/favicon-32.png' ) ) . '" sizes="32x32">' . "\n";
 	}
 } );
+
+/** False when the owner has hidden this section (projects, testimonials, social, blog, faq, credentials) for launch. */
+function kriswa_sec( $slug ) {
+	return ! function_exists( 'kriswa_section_hidden' ) || ! kriswa_section_hidden( $slug );
+}

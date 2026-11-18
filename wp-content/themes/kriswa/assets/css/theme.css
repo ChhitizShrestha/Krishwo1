@@ -247,3 +247,20 @@ body.kr-lang-ne .kr-hero .kr-hero__title { line-height: 1.3; letter-spacing: 0; 
 }
 @media (min-width: 601px) and (max-width: 680px) { .kr-nav .wp-block-navigation-item__content { padding: 8px 5px; font-size: .8125rem; } .kr-brand img { width: 36px; height: 36px; } }
 .wp-block-navigation__responsive-container.is-menu-open .kr-nav-cta { display: flex; justify-content: flex-start !important; }
+
+/* Phone menu colours follow the theme (light and dark). WordPress hard-codes a white panel with black text unless these
+   rules are at least as specific, so they are written to win and use the same tokens as the rest of the site. */
+.wp-block-navigation.kr-nav:not(.has-background) .wp-block-navigation__responsive-container.is-menu-open,
+.wp-block-navigation.kr-nav .wp-block-navigation__responsive-container.is-menu-open {
+	background-color: var(--kr-bg) !important;
+	color: var(--kr-text) !important;
+}
+.kr-nav .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item__content,
+.kr-nav .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item__content:hover { color: var(--kr-text) !important; }
+.kr-nav .wp-block-navigation__responsive-container.is-menu-open .kr-nav-cta .wp-block-navigation-item__content { color: #fff !important; background: var(--kr-primary); }
+.kr-nav .wp-block-navigation__responsive-container-open,
+.kr-nav .wp-block-navigation__responsive-container-close { color: var(--kr-text) !important; background: transparent; }
+.kr-nav .wp-block-navigation__responsive-container-open svg,
+.kr-nav .wp-block-navigation__responsive-container-close svg { fill: currentColor; }
+.kr-nav .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item { border-bottom-color: var(--kr-line); }
+.kr-nav .wp-block-navigation__responsive-container.is-menu-open li.kr-nav-cta { display: flex !important; flex-direction: row !important; justify-content: flex-start !important; align-items: center !important; }

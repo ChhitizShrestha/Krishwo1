@@ -16,7 +16,7 @@
 <?php
 echo kriswa_buttons( // phpcs:ignore WordPress.Security.EscapeOutput
 	kriswa_btn( __( 'Get a Free Quote', 'kriswa' ), kriswa_quote_url() ) .
-	kriswa_btn( __( 'See our projects', 'kriswa' ), kriswa_projects_url(), 'outline' ),
+	( kriswa_sec( 'projects' ) ? kriswa_btn( __( 'See our projects', 'kriswa' ), kriswa_projects_url(), 'outline' ) : kriswa_btn( __( 'Our services', 'kriswa' ), kriswa_u( 'services' ), 'outline' ) ),
 	'kr-hero__btns'
 );
 ?>

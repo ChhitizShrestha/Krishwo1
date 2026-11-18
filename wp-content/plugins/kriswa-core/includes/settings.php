@@ -22,6 +22,18 @@ function kriswa_settings_schema() {
 				'stat_team'     => array( 'Engineers and staff', 'number', 'e.g. 25' ),
 			),
 		),
+		'sections' => array(
+			'Menus and sections',
+			'Launching before everything is ready? Tick a section to hide it from visitors for now: it disappears from the menu, footer, home page and search-engine sitemap, and its address sends visitors to the home page. You (when logged in as administrator) can still open and prepare it. Untick it to publish.',
+			array(
+				'hide_projects'     => array( 'Hide Projects', 'checkbox', kriswa_sections()['projects'][1] ),
+				'hide_testimonials' => array( 'Hide Testimonials', 'checkbox', kriswa_sections()['testimonials'][1] ),
+				'hide_social'       => array( 'Hide Social (Instagram and TikTok)', 'checkbox', kriswa_sections()['social'][1] ),
+				'hide_blog'         => array( 'Hide Blog', 'checkbox', kriswa_sections()['blog'][1] ),
+				'hide_faq'          => array( 'Hide FAQ', 'checkbox', kriswa_sections()['faq'][1] ),
+				'hide_credentials'  => array( 'Hide Credentials and Team page', 'checkbox', kriswa_sections()['credentials'][1] ),
+			),
+		),
 		'contact'  => array(
 			'Phone, email, address',
 			'Shown in the footer, on the Contact page, in the floating call/WhatsApp buttons and in Google results.',

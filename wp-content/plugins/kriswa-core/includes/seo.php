@@ -432,6 +432,7 @@ function kriswa_seo_apply() {
 	}
 	update_option( 'kriswa_seo_applied', time(), false );
 	update_option( 'kriswa_seo_log', $log, false );
+	kriswa_clear_sitemap_cache();
 	return $log;
 }
 

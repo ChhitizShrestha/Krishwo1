@@ -8,15 +8,19 @@
  */
 
 $home  = function_exists( 'pll_home_url' ) ? pll_home_url() : home_url( '/' );
-$links = array(
-	array( __( 'About us', 'kriswa' ), kriswa_u( 'about' ) ),
-	array( __( 'Our services', 'kriswa' ), kriswa_u( 'services' ) ),
-	array( __( 'Credentials and team', 'kriswa' ), kriswa_u( 'credentials' ) ),
-	array( __( 'Projects', 'kriswa' ), kriswa_projects_url() ),
-	array( __( 'Social', 'kriswa' ), kriswa_u( 'social' ) ),
-	array( __( 'Blog', 'kriswa' ), kriswa_u( 'blog' ) ),
-	array( __( 'FAQ', 'kriswa' ), kriswa_u( 'faq' ) ),
-	array( __( 'Contact', 'kriswa' ), kriswa_u( 'contact' ) ),
+$links = array_values(
+	array_filter(
+		array(
+			array( __( 'About us', 'kriswa' ), kriswa_u( 'about' ) ),
+			array( __( 'Our services', 'kriswa' ), kriswa_u( 'services' ) ),
+			kriswa_sec( 'credentials' ) ? array( __( 'Credentials and team', 'kriswa' ), kriswa_u( 'credentials' ) ) : null,
+			kriswa_sec( 'projects' ) ? array( __( 'Projects', 'kriswa' ), kriswa_projects_url() ) : null,
+			kriswa_sec( 'social' ) ? array( __( 'Social', 'kriswa' ), kriswa_u( 'social' ) ) : null,
+			kriswa_sec( 'blog' ) ? array( __( 'Blog', 'kriswa' ), kriswa_u( 'blog' ) ) : null,
+			kriswa_sec( 'faq' ) ? array( __( 'FAQ', 'kriswa' ), kriswa_u( 'faq' ) ) : null,
+			array( __( 'Contact', 'kriswa' ), kriswa_u( 'contact' ) ),
+		)
+	)
 );
 $svc   = array(
 	array( __( 'Residential construction', 'kriswa' ), kriswa_quote_url( 'new-house' ) ),

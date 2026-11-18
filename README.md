@@ -61,6 +61,10 @@ What the site feeds into TSF through its public filters (so nothing is duplicate
 
 After launch: submit `/sitemap.xml` in Google Search Console, create a Google Business Profile with the same name, address and phone as the website, and replace every placeholder in Site Details.
 
+### Launching in stages: hide sections
+
+Not ready to show Projects or Testimonials on day one? Open **Site Details > Menus and sections** and tick what to hide: Projects, Testimonials, Social, Blog, FAQ, Credentials and Team page. A hidden section disappears from the menu (including the phone menu), the footer, the home page and the "related projects" lists, and is removed from the SEO Framework sitemap. Its address sends visitors to the home page (a temporary redirect, never a 404). You, logged in as administrator, can still open and prepare hidden pages (the admin bar says "Hidden from visitors"), and the dashboard reminds you what is hidden. Untick a box to publish that section. Sample content has its own switch under **Extras**.
+
 ### Trust, credentials and team
 
 A **Credentials and Team** page (also linked from the footer and the home-page trust band) gathers: company registration, PAN/VAT, Engineering Council registration, contractor class, any extra licences or certificates (with optional links to the certificate), years of experience, projects completed, technical expertise tags, the team (**Team** menu: photo, role, qualification, NEC number) and client testimonials. Edit numbers and registrations under **Site Details**.

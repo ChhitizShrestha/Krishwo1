@@ -12,11 +12,12 @@ $nav   = array(
 	array( __( 'Home', 'kriswa' ), $home ),
 	array( __( 'About', 'kriswa' ), kriswa_u( 'about' ) ),
 	array( __( 'Services', 'kriswa' ), kriswa_u( 'services' ) ),
-	array( __( 'Projects', 'kriswa' ), kriswa_projects_url() ),
-	array( __( 'Blog', 'kriswa' ), kriswa_u( 'blog' ) ),
-	array( __( 'Social', 'kriswa' ), kriswa_u( 'social' ) ),
+	kriswa_sec( 'projects' ) ? array( __( 'Projects', 'kriswa' ), kriswa_projects_url() ) : null,
+	kriswa_sec( 'blog' ) ? array( __( 'Blog', 'kriswa' ), kriswa_u( 'blog' ) ) : null,
+	kriswa_sec( 'social' ) ? array( __( 'Social', 'kriswa' ), kriswa_u( 'social' ) ) : null,
 	array( __( 'Contact', 'kriswa' ), kriswa_u( 'contact' ) ),
 );
+$nav = array_values( array_filter( $nav ) ); // Sections the owner has hidden are skipped.
 ?>
 <!-- wp:group {"align":"full","className":"kr-header","layout":{"type":"default"}} -->
 <div class="wp-block-group alignfull kr-header">

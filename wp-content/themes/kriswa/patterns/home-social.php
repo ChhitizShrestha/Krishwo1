@@ -7,6 +7,10 @@
  * @package Kriswa
  */
 
+if ( ! kriswa_sec( 'social' ) ) {
+	return;
+}
+
 echo kriswa_section_open( 'surface' ); // phpcs:ignore WordPress.Security.EscapeOutput
 echo kriswa_head( __( 'Follow our work', 'kriswa' ), __( 'See our sites, in photos and video', 'kriswa' ), __( 'Fresh updates from our teams on Instagram and TikTok. Tap any post to watch it right here.', 'kriswa' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 echo '<!-- wp:shortcode -->' . "\n" . '[kriswa_social_feed ig="6" tt="4"]' . "\n" . '<!-- /wp:shortcode -->'; // phpcs:ignore WordPress.Security.EscapeOutput
