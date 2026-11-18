@@ -7,6 +7,10 @@
  * @package Kriswa
  */
 
+if ( ! kriswa_has( 'kriswa_project' ) ) {
+	return; // Nothing to show yet: skip the whole section.
+}
+
 echo kriswa_section_open(); // phpcs:ignore WordPress.Security.EscapeOutput
 echo kriswa_head( __( 'Our work', 'kriswa' ), __( 'Recent projects', 'kriswa' ), __( 'A selection of homes, interiors and renovations we have delivered across Kathmandu Valley and beyond.', 'kriswa' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
 ?>

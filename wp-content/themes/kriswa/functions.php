@@ -144,3 +144,9 @@ function kriswa_i( $name, $size = 28 ) {
 function kriswa_is_nepali_theme() {
 	return function_exists( 'kriswa_is_nepali' ) && kriswa_is_nepali() && class_exists( 'Kriswa_Nepali_Date' );
 }
+
+/** True when at least one published item of this type is visible to visitors (respects "Hide sample content"). */
+function kriswa_has( $post_type ) {
+	$q = new WP_Query( array( 'post_type' => $post_type, 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => true ) );
+	return $q->have_posts();
+}

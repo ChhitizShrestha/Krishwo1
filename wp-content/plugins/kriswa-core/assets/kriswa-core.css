@@ -1,5 +1,5 @@
 /* Kriswa Core components. Visual tokens come from the theme (--kr-*); fallbacks keep it working alone. */
-.kr-grid, .kr-quote, .kr-faq, .kr-contact, .kr-trust, .kr-offices, .kr-map, .kr-social-feed, .kr-news, .kr-social, .kr-facts, .kr-ba, .kr-float, .kr-lang {
+.kr-grid, .kr-team, .kr-expertise, .kr-card, .kr-chip, .kr-form__ref, .kr-quote, .kr-faq, .kr-contact, .kr-trust, .kr-offices, .kr-map, .kr-social-feed, .kr-news, .kr-social, .kr-facts, .kr-ba, .kr-float, .kr-lang {
 	--p: var(--kr-primary, #1747b8);
 	--ph: var(--kr-primary-hover, #0f3290);
 	--bg: var(--kr-bg, #fff);
@@ -211,3 +211,23 @@
 .kr-project__media--architecture { background: linear-gradient(135deg, #1d1d1f, #1f6f78); }
 .kr-gallery .kr-feed { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
 .kr-gallery .kr-tile { aspect-ratio: 4 / 3; }
+
+/* ---------- Project facts: chips, sub-line; team; expertise; certificates ---------- */
+.kr-meta--sub { margin-top: 2px; font-size: .8125rem; }
+.kr-facts__services { flex-direction: column; align-items: flex-start; }
+.kr-facts__services dd { display: flex; flex-wrap: wrap; gap: 6px; text-align: left; }
+.kr-chip { display: inline-block; padding: 4px 12px; border-radius: 980px; background: var(--alt); color: var(--p); font-size: .875rem; font-weight: 500; text-decoration: none; }
+.kr-chip:hover { background: var(--p); color: #fff; }
+.kr-form__ref { margin: 0 0 16px; padding: 10px 14px; border-radius: 12px; background: var(--alt); color: var(--mu); font-size: .9375rem; }
+.kr-trust__cert { display: block; margin-top: 2px; font-size: .8125rem; }
+.kr-expertise { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.kr-expertise li { padding: 10px 20px; border-radius: 980px; background: var(--bg, #fff); font-weight: 500; }
+.kr-team { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 20px; }
+.kr-member { text-align: center; }
+.kr-member__photo { aspect-ratio: 1; background: linear-gradient(135deg, #1d1d1f, var(--p)); display: grid; place-items: center; overflow: hidden; }
+.kr-member__photo img { width: 100%; height: 100%; object-fit: cover; }
+.kr-member__initials { color: rgba(255, 255, 255, .85); font-size: 3rem; font-weight: 700; letter-spacing: -0.03em; }
+.kr-member__body { padding: 20px 20px 26px; }
+.kr-member__role { margin: 0 0 4px; color: var(--p); font-weight: 600; font-size: .9375rem; }
+.kr-member__nec { margin: 6px 0 0; font-size: .8125rem; color: var(--mu); }
+.kr-member .kr-meta { justify-content: center; text-align: center; }

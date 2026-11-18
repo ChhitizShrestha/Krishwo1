@@ -68,6 +68,9 @@ function kriswa_settings_schema() {
 				'pan_vat'         => array( 'PAN / VAT number', 'text', '' ),
 				'nec_no'          => array( 'Engineering Council registration', 'text', '' ),
 				'license_class'   => array( 'Contractor license class', 'text', '' ),
+				'certificates'    => array( 'Other licences and certificates', 'textarea', 'Optional. One per line: Name | Number | Link to the certificate (optional). Example: ISO 9001 | Cert 12345 | https://example.com/iso.pdf' ),
+				'expertise'       => array( 'Technical expertise (English)', 'textarea', 'One per line, shown as tags on the Credentials page, e.g. Structural design, Cost estimation, Site supervision, Land and building valuation.' ),
+				'expertise_ne'    => array( 'Technical expertise (नेपाली)', 'textarea', 'Optional. One per line.' ),
 			),
 		),
 		'feeds'    => array(
@@ -75,13 +78,14 @@ function kriswa_settings_schema() {
 			'Show your latest photos and videos on the website. See the README for the free 5-minute Instagram token steps.',
 			array(
 				'instagram_token' => array( 'Instagram access token', 'secret', 'Stored privately and refreshed automatically each week.' ),
-				'tiktok_videos'   => array( 'TikTok video links', 'textarea', 'One link per line, e.g. https://www.tiktok.com/@yourname/video/1234567890' ),
+				'tiktok_videos'   => array( 'TikTok video links', 'tiktok', 'One link per line, e.g. https://www.tiktok.com/@yourname/video/1234567890. Links are checked when you save; mistyped ones are rejected with an explanation.' ),
 			),
 		),
 		'extras'   => array(
 			'Extras',
 			'Optional tools. All free.',
 			array(
+				'hide_samples'     => array( 'Hide sample content from visitors', 'checkbox', 'Tick this when you go live. Sample projects, testimonials, team members and blog posts disappear from the website (they stay in the admin). Anything you edit and save yourself is treated as real and stays visible.' ),
 				'show_float_btns'  => array( 'Floating WhatsApp and Call buttons', 'checkbox', 'Show the round buttons at the bottom-right of every page.' ),
 				'newsletter_url'   => array( 'Newsletter form address', 'url', 'Optional. Paste the form action URL from a free Mailchimp or Brevo form. Empty = subscribers are saved in WordPress under Leads.' ),
 				'newsletter_field' => array( 'Newsletter email field name', 'text', 'Mailchimp and Brevo use EMAIL.' ),
@@ -136,6 +140,15 @@ function kriswa_sanitize_options( $input ) {
 			case 'checkbox':
 				$out[ $key ] = empty( $input[ $key ] ) ? '0' : '1';
 				break;
+			case 'tiktok':
+				if ( $present && function_exists( 'kriswa_tiktok_validate' ) ) {
+					$v = kriswa_tiktok_validate( $val );
+					foreach ( $v['invalid'] as $bad ) {
+						add_settings_error( 'kriswa_options', 'tt_' . md5( $bad[0] ), 'TikTok link not saved: "' . esc_html( mb_strimwidth( $bad[0], 0, 70, '...' ) ) . '" ' . $bad[1] . '.', 'error' );
+					}
+					$out[ $key ] = implode( "\n", $v['valid'] );
+				}
+				break;
 			case 'number':
 				if ( $present ) {
 					$out[ $key ] = '' === trim( $val ) ? '0' : (string) absint( preg_replace( '/[^0-9]/', '', $val ) );
@@ -189,10 +202,6 @@ function kriswa_settings_page() {
 	}
 	echo '</div>';
 
-	if ( function_exists( 'kriswa_social_status_box' ) ) {
-		kriswa_social_status_box();
-	}
-
 	echo '<h2 class="nav-tab-wrapper kriswa-tabs" style="margin-top:20px">';
 	$i = 0;
 	foreach ( $tabs as $id => $t ) {
@@ -204,12 +213,17 @@ function kriswa_settings_page() {
 	echo '<form method="post" action="options.php">';
 	settings_fields( 'kriswa_settings' );
 	foreach ( $tabs as $id => $t ) {
-		echo '<section class="kriswa-panel" id="tab-' . esc_attr( $id ) . '" data-panel="' . esc_attr( $id ) . '"><h2>' . esc_html( $t[0] ) . '</h2><p class="description" style="max-width:760px">' . esc_html( $t[1] ) . '</p><table class="form-table" role="presentation">';
+		echo '<section class="kriswa-panel" id="tab-' . esc_attr( $id ) . '" data-panel="' . esc_attr( $id ) . '"><h2>' . esc_html( $t[0] ) . '</h2><p class="description" style="max-width:760px">' . esc_html( $t[1] ) . '</p>';
+		if ( 'feeds' === $id && function_exists( 'kriswa_social_admin_panel' ) ) {
+			kriswa_social_admin_panel();
+		}
+		echo '<table class="form-table" role="presentation">';
 		foreach ( $t[2] as $key => $def ) {
 			$name = 'kriswa_options[' . $key . ']';
 			$fid  = 'kr_' . $key;
 			echo '<tr><th scope="row"><label for="' . esc_attr( $fid ) . '">' . esc_html( $def[0] ) . '</label></th><td>';
 			switch ( $def[1] ) {
+				case 'tiktok':
 				case 'textarea':
 					echo '<textarea class="large-text" rows="4" id="' . esc_attr( $fid ) . '" name="' . esc_attr( $name ) . '">' . esc_textarea( $opts[ $key ] ) . '</textarea>';
 					break;

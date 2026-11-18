@@ -206,8 +206,162 @@ add_action(
 add_filter(
 	'use_block_editor_for_post_type',
 	function ( $use, $type ) {
-		return in_array( $type, array( 'kriswa_project', 'kriswa_service', 'kriswa_testimonial', 'kriswa_faq' ), true ) ? false : $use;
+		return in_array( $type, array( 'kriswa_project', 'kriswa_service', 'kriswa_testimonial', 'kriswa_faq', 'kriswa_team' ), true ) ? false : $use;
 	},
 	10,
 	2
+);
+
+/* ------------------------------------------------------------------------- *
+ * Project <-> Services link ("Related services")
+ * ------------------------------------------------------------------------- */
+add_action(
+	'add_meta_boxes_kriswa_project',
+	function () {
+		add_meta_box( 'kriswa_related', 'Related services', 'kriswa_related_services_box', 'kriswa_project', 'side', 'default' );
+	}
+);
+
+function kriswa_related_services_box( $post ) {
+	wp_nonce_field( 'kriswa_related_' . $post->ID, 'kriswa_related_nonce' );
+	$chosen   = array_map( 'absint', (array) get_post_meta( $post->ID, '_kr_service', false ) );
+	$services = get_posts( array( 'post_type' => 'kriswa_service', 'post_status' => 'publish', 'numberposts' => 50, 'orderby' => 'menu_order title', 'order' => 'ASC' ) );
+	if ( ! $services ) {
+		echo '<p>No services yet.</p>';
+		return;
+	}
+	echo '<p class="description">Tick the services this project shows. Visitors see links to them, and the service page lists this project.</p>';
+	foreach ( $services as $sv ) {
+		echo '<p style="margin:4px 0"><label><input type="checkbox" name="kr_services[]" value="' . (int) $sv->ID . '"' . checked( in_array( $sv->ID, $chosen, true ), true, false ) . '> ' . esc_html( $sv->post_title ) . '</label></p>';
+	}
+}
+
+add_action(
+	'save_post_kriswa_project',
+	function ( $post_id ) {
+		if ( ! isset( $_POST['kriswa_related_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['kriswa_related_nonce'] ) ), 'kriswa_related_' . $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+		delete_post_meta( $post_id, '_kr_service' );
+		$ids = isset( $_POST['kr_services'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['kr_services'] ) ) : array();
+		foreach ( array_unique( $ids ) as $sid ) {
+			if ( 'kriswa_service' === get_post_type( $sid ) ) {
+				add_post_meta( $post_id, '_kr_service', $sid );
+			}
+		}
+	}
+);
+
+/* ------------------------------------------------------------------------- *
+ * Team list columns
+ * ------------------------------------------------------------------------- */
+add_filter(
+	'manage_kriswa_team_posts_columns',
+	function ( $cols ) {
+		return array( 'cb' => $cols['cb'], 'kr_photo' => 'Photo', 'title' => $cols['title'], 'kr_role' => 'Role', 'kr_nec' => 'NEC no.' );
+	}
+);
+add_action(
+	'manage_kriswa_team_posts_custom_column',
+	function ( $col, $id ) {
+		if ( 'kr_photo' === $col ) {
+			echo has_post_thumbnail( $id ) ? get_the_post_thumbnail( $id, array( 48, 48 ) ) : '<span style="color:#999">No photo</span>';
+		} elseif ( 'kr_role' === $col ) {
+			echo esc_html( get_post_meta( $id, '_kr_role', true ) );
+		} elseif ( 'kr_nec' === $col ) {
+			echo esc_html( get_post_meta( $id, '_kr_nec', true ) );
+		}
+	},
+	10,
+	2
+);
+
+/* ------------------------------------------------------------------------- *
+ * Sample content: flagged, hideable, deletable
+ * ------------------------------------------------------------------------- */
+function kriswa_sample_types() {
+	return array( 'kriswa_project', 'kriswa_testimonial', 'kriswa_team', 'post' );
+}
+
+function kriswa_sample_ids() {
+	return get_posts(
+		array(
+			'post_type'      => kriswa_sample_types(),
+			'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+			'numberposts'    => -1,
+			'fields'         => 'ids',
+			'meta_key'       => '_kr_sample', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_value'     => '1', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'lang'           => '',
+			'no_found_rows'  => true,
+			'suppress_filters' => false,
+		)
+	);
+}
+
+/* Saving a sample item in the editor means "this is mine now": it stops being a sample. */
+add_action(
+	'save_post',
+	function ( $post_id, $post ) {
+		if ( ! is_admin() || ! in_array( $post->post_type, kriswa_sample_types(), true ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+			return;
+		}
+		if ( isset( $_POST['post_ID'] ) && (int) $_POST['post_ID'] === (int) $post_id && current_user_can( 'edit_post', $post_id ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			delete_post_meta( $post_id, '_kr_sample' );
+		}
+	},
+	99,
+	2
+);
+
+/* "Sample" label in the project list. */
+add_filter(
+	'display_post_states',
+	function ( $states, $post ) {
+		if ( get_post_meta( $post->ID, '_kr_sample', true ) ) {
+			$states['kr_sample'] = 'Sample';
+		}
+		return $states;
+	},
+	10,
+	2
+);
+
+add_action(
+	'admin_post_kriswa_delete_samples',
+	function () {
+		if ( ! current_user_can( 'manage_options' ) || ! check_admin_referer( 'kriswa_delete_samples' ) ) {
+			wp_die( 'Not allowed.', 403 );
+		}
+		foreach ( kriswa_sample_ids() as $id ) {
+			wp_delete_post( $id, true );
+		}
+		update_option( 'kriswa_samples_done', 1, false ); // Do not bring them back automatically.
+		wp_safe_redirect( admin_url( 'admin.php?page=kriswa-setup&samples_deleted=1' ) );
+		exit;
+	}
+);
+
+/* Banner on Site Details and the Dashboard while sample items are showing. */
+function kriswa_sample_notice() {
+	$n = count( kriswa_sample_ids() );
+	if ( ! $n ) {
+		return;
+	}
+	$hidden = '1' === kriswa_opt( 'hide_samples', false );
+	echo '<div class="notice notice-' . ( $hidden ? 'info' : 'warning' ) . '"><p><strong>' . (int) $n . ' sample item(s)</strong> (projects, testimonials, team members, blog posts) ' . ( $hidden ? 'are hidden from visitors.' : 'are <strong>visible to visitors</strong>.' ) . ' Edit each one with your real details (saving makes it yours), then ' . ( $hidden ? 'untick' : 'tick' ) . ' <em>Hide sample content</em> under <a href="' . esc_url( admin_url( 'admin.php?page=kriswa-settings#tab-extras' ) ) . '">Site Details &gt; Extras</a> or <a href="' . esc_url( admin_url( 'admin.php?page=kriswa-setup' ) ) . '">delete all samples</a>.</p></div>';
+}
+add_action(
+	'admin_notices',
+	function () {
+		$screen = get_current_screen();
+		if ( $screen && current_user_can( 'manage_options' ) && in_array( $screen->id, array( 'dashboard', 'toplevel_page_kriswa-settings' ), true ) ) {
+			kriswa_sample_notice();
+			if ( 'dashboard' === $screen->id ) {
+				foreach ( kriswa_social_health() as $h ) {
+					echo '<div class="notice notice-' . ( 'error' === $h[0] ? 'error' : 'warning' ) . '"><p>' . esc_html( $h[1] ) . ' <a href="' . esc_url( admin_url( 'admin.php?page=kriswa-settings#kriswa-social' ) ) . '">Open the social preview</a></p></div>';
+				}
+			}
+		}
+	}
 );

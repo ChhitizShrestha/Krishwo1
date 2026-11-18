@@ -45,7 +45,15 @@ wp-content/
 | Testimonials, FAQs, services | the menus of the same name |
 | Quote requests | **Leads** (with CSV export); new ones are counted on the Dashboard |
 
+Each project can show: year, built-up area, budget range, duration, architect/engineer, location, a photo gallery, before/after photos, a video and **related services** (tick them in the right-hand box). Visitors see these as a tidy fact list, the service page lists its related projects, "Get a free quote" on a project preselects the matching service and tells you which project the enquiry came from, and each project carries local-SEO structured data (place, year, company).
+
 Project types are Residential, Renovation, Valuation, Interior and Architecture. The sample projects cover residential buildings, renovations and land/building valuation cases; each shows a coloured placeholder until a photo is added.
+
+### Trust, credentials and team
+
+A **Credentials and Team** page (also linked from the footer and the home-page trust band) gathers: company registration, PAN/VAT, Engineering Council registration, contractor class, any extra licences or certificates (with optional links to the certificate), years of experience, projects completed, technical expertise tags, the team (**Team** menu: photo, role, qualification, NEC number) and client testimonials. Edit numbers and registrations under **Site Details**.
+
+**Sample content never has to go live by accident.** Everything created as a sample (projects, testimonials, team, blog posts) is flagged. The dashboard and Site Details show how many are still visible. Editing and saving a sample in the admin makes it yours; **Site Details > Extras > Hide sample content** hides the rest from visitors, and **Setup & Help > Delete all sample content** removes them. Sections with nothing to show (for example testimonials) disappear from the pages instead of showing an empty heading.
 
 ### Instagram and TikTok
 
@@ -61,9 +69,15 @@ All free. Settings live under **Settings > Kriswa > Instagram and TikTok feed**.
 1. Open a video on TikTok, copy its link, and paste one link per line into **TikTok video links**. Save.
 2. TikTok only lists a whole profile automatically through an app that TikTok must approve, so this site uses the free link-based method. Add new videos by pasting their links.
 
-The panel shows a tab bar when both are connected, falls back to a tidy "Follow us" card when neither is, and shows a note (to admins only) if Instagram reports a problem. **Settings > Kriswa > Refresh feeds now** forces an update.
+How it behaves (**Site Details > Instagram and TikTok** shows all of this live):
+- **Visitors never trigger Instagram or TikTok requests.** Pages only read a cache. One background job refreshes hourly; if something is stale a single de-duplicated background refresh is scheduled. After a failure the site waits (10 minutes, 30 minutes for Meta rate limits, 1 hour for a rejected token) before asking again.
+- **Failures are graceful.** The last good posts keep showing; only admins see a note, and the dashboard shows a warning. If the token is rejected you also get an email (at most every 3 days).
+- **Token:** Instagram long-lived tokens last 60 days; a refresh needs a token that is at least 24 hours old and not yet expired, and gives another 60 days. The site refreshes weekly, records the exact expiry after the first refresh (until then it shows an estimate), and warns when fewer than 10 days remain. An expired token cannot be refreshed: paste a new one. **Refresh Instagram token now** and **Refresh feeds now** buttons are provided.
+- **Pictures are copied to your own server** (`uploads/kriswa-social`), so they never expire and visitors do not contact Meta or TikTok just by scrolling. Videos play from Instagram's link and TikTok videos play in TikTok's own player.
+- **TikTok:** links are validated when you save (https only, tiktok.com video links, tracking parameters removed, duplicates dropped; bad lines are rejected with an explanation). TikTok's player and scripts load only when a visitor taps a video.
+- **Preview:** thumbnails of the latest posts, per-link OK/problem status, the last update time and the next automatic check.
 
-Privacy: Instagram images load from Meta's servers. TikTok loads nothing from TikTok until a visitor taps a video.
+Privacy: no request to Meta or TikTok is made from a visitor's browser until they tap a video.
 
 ### Design
 

@@ -104,6 +104,8 @@ function kriswa_process_quote( $data ) {
 	$pref    = isset( $data['kr_pref'] ) ? sanitize_key( $data['kr_pref'] ) : 'call';
 	$msg     = isset( $data['kr_message'] ) ? sanitize_textarea_field( $data['kr_message'] ) : '';
 	$consent = ! empty( $data['kr_consent'] );
+	$proj    = isset( $data['kr_project'] ) ? absint( $data['kr_project'] ) : 0;
+	$proj_t  = ( $proj && 'kriswa_project' === get_post_type( $proj ) && 'publish' === get_post_status( $proj ) ) ? get_the_title( $proj ) : '';
 
 	$errors = array();
 	if ( strlen( $name ) < 2 ) {
@@ -164,6 +166,7 @@ function kriswa_process_quote( $data ) {
 		'_lead_pref'     => $prefs[ $pref ],
 		'_lead_message'  => $msg,
 		'_lead_lang'     => kriswa_lang(),
+		'_lead_project'  => $proj_t,
 	);
 	foreach ( $meta as $k => $v ) {
 		update_post_meta( $id, $k, $v );
@@ -206,6 +209,7 @@ function kriswa_notify_lead( $lead_id, $meta ) {
 		'_lead_timeline' => 'Timeline',
 		'_lead_pref'     => 'Preferred contact',
 		'_lead_message'  => 'Message',
+		'_lead_project'  => 'Asked from project page',
 		'_lead_lang'     => 'Site language',
 	);
 	foreach ( $map as $k => $label ) {
@@ -373,6 +377,7 @@ function kriswa_lead_meta_box( $post ) {
 		'_lead_timeline' => __( 'Timeline', 'kriswa-core' ),
 		'_lead_pref'     => __( 'Preferred contact', 'kriswa-core' ),
 		'_lead_message'  => __( 'Message', 'kriswa-core' ),
+		'_lead_project'  => __( 'Asked from project page', 'kriswa-core' ),
 		'_lead_lang'     => __( 'Site language', 'kriswa-core' ),
 	);
 	echo '<table class="form-table" role="presentation">';
@@ -439,7 +444,7 @@ add_action(
 		header( 'Content-Disposition: attachment; filename=kriswa-leads-' . gmdate( 'Y-m-d' ) . '.csv' );
 		$out  = fopen( 'php://output', 'w' );
 		fwrite( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM so Excel shows Nepali text correctly.
-		$keys = array( '_lead_type', '_lead_status', '_lead_name', '_lead_phone', '_lead_email', '_lead_service', '_lead_location', '_lead_area', '_lead_budget', '_lead_timeline', '_lead_pref', '_lead_message', '_lead_lang' );
+		$keys = array( '_lead_type', '_lead_status', '_lead_name', '_lead_phone', '_lead_email', '_lead_service', '_lead_location', '_lead_area', '_lead_budget', '_lead_timeline', '_lead_pref', '_lead_message', '_lead_project', '_lead_lang' );
 		fputcsv( $out, array_merge( array( 'date' ), array_map( fn( $k ) => ltrim( $k, '_' ), $keys ) ) );
 		foreach ( $ids as $id ) {
 			$row = array( get_the_date( 'Y-m-d H:i', $id ) );

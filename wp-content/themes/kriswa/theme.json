@@ -243,6 +243,13 @@
 			"postTypes": [
 				"page"
 			]
+		},
+		{
+			"name": "page-credentials",
+			"title": "Credentials and team page",
+			"postTypes": [
+				"page"
+			]
 		}
 	],
 	"templateParts": [

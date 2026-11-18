@@ -31,6 +31,12 @@ function kriswa_setup_page() {
 	wp_nonce_field( 'kriswa_setup' );
 	echo '<p><label><input type="checkbox" name="with_samples" value="1"> Also (re)add the sample services, projects, testimonials, FAQs and posts that were deleted</label></p>';
 	echo '<p><button class="button button-primary" name="kriswa_setup" value="1">Check and fix pages</button></p></form></div>';
+	if ( isset( $_GET['samples_deleted'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		echo '<div class="notice notice-success"><p>All sample projects, testimonials, team members and posts were deleted.</p></div>';
+	}
+	if ( function_exists( 'kriswa_sample_ids' ) && kriswa_sample_ids() ) {
+		echo '<div class="card" style="max-width:820px"><h2>Sample content</h2><p>' . (int) count( kriswa_sample_ids() ) . ' sample item(s) (projects, testimonials, team members, blog posts) are still on the site. Items you edited and saved yourself are not counted. You can hide them under Site Details &gt; Extras, or remove them all here.</p><p><a class="button" onclick="return confirm(\'Delete all sample items permanently?\')" href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=kriswa_delete_samples' ), 'kriswa_delete_samples' ) ) . '">Delete all sample content</a></p></div>';
+	}
 	echo '<div class="card" style="max-width:820px"><h2>How to update things</h2><ul style="list-style:disc;margin-left:1.5em">';
 	echo '<li><strong>Phone, email, address, social links, homepage numbers:</strong> <a href="' . esc_url( admin_url( 'admin.php?page=kriswa-settings' ) ) . '">Kriswa Site &gt; Site Details</a>.</li>';
 	echo '<li><strong>Add a project:</strong> <a href="' . esc_url( admin_url( 'post-new.php?post_type=kriswa_project' ) ) . '">Projects &gt; Add New</a>. Give it a title, a short description, a Featured image and choose a Project Type.</li>';
@@ -133,6 +139,7 @@ function kriswa_core_pages() {
 		'services'    => array( 'Our Services', 'हाम्रा सेवाहरू', 'page-services' ),
 		'get-a-quote' => array( 'Get a Free Quote', 'निःशुल्क कोटेसन', 'page-quote' ),
 		'faq'         => array( 'FAQ', 'बारम्बार सोधिने प्रश्नहरू', 'page-faq' ),
+		'credentials' => array( 'Credentials and Team', 'प्रमाणपत्र तथा टोली', 'page-credentials' ),
 		'social'      => array( 'Social', 'सामाजिक सञ्जाल', 'page-social' ),
 		'contact'     => array( 'Contact Us', 'सम्पर्क', 'page-contact' ),
 		'blog'        => array( 'Blog', 'ब्लग', '' ),
@@ -289,6 +296,28 @@ function kriswa_seed_samples( &$log ) {
 		array( 'apartment-interior-lalitpur', 'Interior', 'Apartment Interior, Lalitpur (sample)', 'अपार्टमेन्ट इन्टेरियर, ललितपुर (नमुना)', 'Lalitpur', '2025', '1,450 sq. ft.', 'completed' ),
 		array( 'office-building-design-baneshwor', 'Architecture', 'Office Building Design, New Baneshwor (sample)', 'कार्यालय भवन डिजाइन, नयाँ बानेश्वर (नमुना)', 'New Baneshwor, Kathmandu', '2026', '9,500 sq. ft.', 'ongoing' ),
 	);
+	$extras = array(
+		// slug => [ budget band, duration, architect / engineer ]
+		'modern-family-home-budhanilkantha'          => array( '1-2cr', '11 months', 'Er. Sample Engineer (NEC No. 0000), Ar. Sample Architect' ),
+		'duplex-homes-bhaisepati'                    => array( '2-5cr', '14 months', 'Er. Sample Engineer (NEC No. 0000), Ar. Sample Architect' ),
+		'three-storey-residence-tokha'               => array( '1-2cr', '10 months', 'Er. Sample Engineer (NEC No. 0000)' ),
+		'family-house-imadol'                        => array( '50l-1cr', '8 months (planned)', 'Er. Sample Engineer (NEC No. 0000)' ),
+		'heritage-house-renovation-bhaktapur'        => array( '50l-1cr', '7 months', 'Er. Sample Engineer (NEC No. 0000), Ar. Sample Architect' ),
+		'second-floor-extension-chabahil'            => array( '25-50l', '4 months', 'Er. Sample Engineer (NEC No. 0000)' ),
+		'kitchen-bathroom-renovation-patan'          => array( 'lt-25l', '6 weeks', 'Er. Sample Engineer (NEC No. 0000)' ),
+		'residential-valuation-bank-loan-kathmandu'  => array( '', '1 week', 'Valuation engineer: Er. Sample Valuer (NEC No. 0000)' ),
+		'commercial-building-valuation-baneshwor'    => array( '', '2 weeks', 'Valuation engineer: Er. Sample Valuer (NEC No. 0000)' ),
+		'land-valuation-partition-lalitpur'          => array( '', '3 days', 'Valuation engineer: Er. Sample Valuer (NEC No. 0000)' ),
+		'apartment-interior-lalitpur'                => array( '25-50l', '3 months', 'Ar. Sample Architect' ),
+		'office-building-design-baneshwor'           => array( '', 'Design stage: 4 months', 'Ar. Sample Architect, Er. Sample Engineer (NEC No. 0000)' ),
+	);
+	$svc_for = array(
+		'Residential'  => 'residential-construction',
+		'Renovation'   => 'renovation-extension',
+		'Valuation'    => 'land-building-valuation',
+		'Interior'     => 'interior-design-fit-out',
+		'Architecture' => 'architectural-design-drawings',
+	);
 	foreach ( $projects as $n => $p ) {
 		// Stagger dates so the list shows in the order above (newest first); real projects simply use their publish date.
 		$when = gmdate( 'Y-m-d H:i:s', time() - ( $n * HOUR_IN_SECONDS ) );
@@ -297,11 +326,17 @@ function kriswa_seed_samples( &$log ) {
 			$p[0],
 			array( 'title' => $p[2], 'content' => kriswa_sample_project_body( $p[1], 'en' ), 'extra' => array( 'post_excerpt' => 'Sample ' . strtolower( $p[1] ) . ' project in ' . $p[4] . '.', 'post_date_gmt' => $when, 'post_date' => get_date_from_gmt( $when ) ) ),
 			array( 'title' => $p[3], 'content' => kriswa_sample_project_body( $p[1], 'ne' ), 'extra' => array( 'post_excerpt' => $p[4] . ' मा नमुना परियोजना।', 'post_date_gmt' => $when, 'post_date' => get_date_from_gmt( $when ) ) ),
-			array( '_kr_location' => $p[4], '_kr_year' => $p[5], '_kr_area' => $p[6], '_kr_status' => $p[7] ),
+			array( '_kr_location' => $p[4], '_kr_year' => $p[5], '_kr_area' => $p[6], '_kr_status' => $p[7], '_kr_budget' => $extras[ $p[0] ][0], '_kr_duration' => $extras[ $p[0] ][1], '_kr_team' => $extras[ $p[0] ][2], '_kr_sample' => '1' ),
 			$log
 		);
 		if ( $id && ! has_term( '', 'kriswa_project_type', $id ) ) {
 			wp_set_object_terms( $id, $p[1], 'kriswa_project_type' );
+		}
+		if ( $id && ! get_post_meta( $id, '_kr_service', true ) && isset( $svc_for[ $p[1] ] ) ) {
+			$sv = kriswa_find_post( 'kriswa_service', $svc_for[ $p[1] ] );
+			if ( $sv ) {
+				add_post_meta( $id, '_kr_service', $sv );
+			}
 		}
 	}
 	/* ---- Testimonials (clearly marked samples) ---- */
@@ -316,7 +351,7 @@ function kriswa_seed_samples( &$log ) {
 			$t[0],
 			array( 'title' => $t[1], 'content' => "<!-- wp:paragraph -->\n<p>{$t[3]}</p>\n<!-- /wp:paragraph -->", 'extra' => array( 'menu_order' => $i ) ),
 			array( 'title' => $t[2], 'content' => "<!-- wp:paragraph -->\n<p>{$t[4]}</p>\n<!-- /wp:paragraph -->", 'extra' => array( 'menu_order' => $i ) ),
-			array( '_kr_role' => $t[5], '_kr_rating' => '5' ),
+			array( '_kr_role' => $t[5], '_kr_rating' => '5', '_kr_sample' => '1' ),
 			$log
 		);
 	}
@@ -362,6 +397,23 @@ function kriswa_seed_samples( &$log ) {
 		);
 	}
 
+	/* ---- Team (sample people, replaced by the real team) ---- */
+	$team = array(
+		array( 'sample-structural-engineer', 'Er. Sample Engineer (sample)', 'इन्जि. नमुना इन्जिनियर (नमुना)', 'Structural engineer', 'संरचना इन्जिनियर', 'B.E. Civil Engineering', 'NEC Reg. No. 0000 (sample)' ),
+		array( 'sample-architect', 'Ar. Sample Architect (sample)', 'वा. नमुना वास्तुकार (नमुना)', 'Architect', 'वास्तुकार', 'B.Arch', '' ),
+		array( 'sample-valuation-engineer', 'Er. Sample Valuer (sample)', 'इन्जि. नमुना मूल्याङ्कनकर्ता (नमुना)', 'Land and building valuation engineer', 'जग्गा तथा भवन मूल्याङ्कन इन्जिनियर', 'B.E. Civil, valuation specialist', 'NEC Reg. No. 0000 (sample)' ),
+	);
+	foreach ( $team as $i => $m ) {
+		kriswa_seed_pair(
+			'kriswa_team',
+			$m[0],
+			array( 'title' => $m[1], 'extra' => array( 'menu_order' => $i ) ),
+			array( 'title' => $m[2], 'extra' => array( 'menu_order' => $i ) ),
+			array( '_kr_role' => $m[3], '_kr_qual' => $m[5], '_kr_nec' => $m[6], '_kr_sample' => '1' ),
+			$log
+		);
+	}
+
 	/* ---- Blog posts ---- */
 	$posts = array(
 		array( 'planning-your-first-home', 'Planning your first home: 7 questions to ask before you build', 'पहिलो घर बनाउनु अघि सोध्नुपर्ने ७ प्रश्न',
@@ -377,7 +429,7 @@ function kriswa_seed_samples( &$log ) {
 			$p[0],
 			array( 'title' => $p[1], 'content' => "<!-- wp:paragraph -->\n<p>{$p[3]}</p>\n<!-- /wp:paragraph -->", 'extra' => array( 'post_excerpt' => $p[3] ) ),
 			array( 'title' => $p[2], 'content' => "<!-- wp:paragraph -->\n<p>{$p[4]}</p>\n<!-- /wp:paragraph -->", 'extra' => array( 'post_excerpt' => $p[4] ) ),
-			array(),
+			array( '_kr_sample' => '1' ),
 			$log
 		);
 	}

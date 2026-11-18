@@ -122,39 +122,52 @@ add_shortcode(
 		echo '<div class="kr-grid kr-grid--projects">';
 		while ( $q->have_posts() ) {
 			$q->the_post();
-			$id    = get_the_ID();
-			$types = wp_get_post_terms( $id, 'kriswa_project_type' );
-			$slugs = is_wp_error( $types ) ? array() : wp_list_pluck( $types, 'slug' );
-			$tname = ( ! is_wp_error( $types ) && $types ) ? $types[0]->name : '';
-			$loc   = get_post_meta( $id, '_kr_location', true );
-			$stat  = get_post_meta( $id, '_kr_status', true );
-			echo '<article class="kr-card kr-project" data-types="' . esc_attr( implode( ' ', $slugs ) ) . '">';
-			echo '<a class="kr-project__media kr-project__media--' . esc_attr( $slugs ? $slugs[0] : 'none' ) . '" href="' . esc_url( get_permalink() ) . '" tabindex="-1" aria-hidden="true">';
-			if ( has_post_thumbnail() ) {
-				the_post_thumbnail( 'large', array( 'loading' => 'lazy', 'alt' => '' ) );
-			} else {
-				$icons = array( 'residential' => 'home', 'renovation' => 'tools', 'valuation' => 'scale', 'interior' => 'sofa', 'architecture' => 'ruler' );
-				$first = $slugs ? $slugs[0] : '';
-				echo '<span class="kr-project__ph">' . kriswa_icon( isset( $icons[ $first ] ) ? $icons[ $first ] : 'building', 52 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
-			}
-			if ( 'ongoing' === $stat ) {
-				echo '<span class="kr-badge kr-badge--ongoing">' . esc_html__( 'Ongoing', 'kriswa-core' ) . '</span>';
-			}
-			echo '</a><div class="kr-project__body">';
-			if ( $tname ) {
-				echo '<span class="kr-tag">' . esc_html( $tname ) . '</span>';
-			}
-			echo '<h3 class="kr-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h3>';
-			if ( $loc ) {
-				echo '<p class="kr-meta">' . kriswa_icon( 'pin', 16 ) . ' ' . esc_html( $loc ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput
-			}
-			echo '</div></article>';
+			echo kriswa_project_card( get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 		echo '</div></div>';
 		wp_reset_postdata();
 		return ob_get_clean();
 	}
 );
+
+
+/** One project card (used by the portfolio, the home page and related-projects lists). */
+function kriswa_project_card( $id ) {
+	$types = wp_get_post_terms( $id, 'kriswa_project_type' );
+	$slugs = is_wp_error( $types ) ? array() : wp_list_pluck( $types, 'slug' );
+	$tname = ( ! is_wp_error( $types ) && $types ) ? $types[0]->name : '';
+	$loc   = get_post_meta( $id, '_kr_location', true );
+	$stat  = get_post_meta( $id, '_kr_status', true );
+	$year  = get_post_meta( $id, '_kr_year', true );
+	$area  = get_post_meta( $id, '_kr_area', true );
+	$sub   = array_filter( array( $year ? ( kriswa_is_nepali() ? Kriswa_Nepali_Date::numerals( $year ) : $year ) : '', $area ) );
+	ob_start();
+	echo '<article class="kr-card kr-project" data-types="' . esc_attr( implode( ' ', $slugs ) ) . '">';
+	echo '<a class="kr-project__media kr-project__media--' . esc_attr( $slugs ? $slugs[0] : 'none' ) . '" href="' . esc_url( get_permalink( $id ) ) . '" tabindex="-1" aria-hidden="true">';
+	if ( has_post_thumbnail( $id ) ) {
+		echo get_the_post_thumbnail( $id, 'large', array( 'loading' => 'lazy', 'alt' => '' ) );
+	} else {
+		$icons = array( 'residential' => 'home', 'renovation' => 'tools', 'valuation' => 'scale', 'interior' => 'sofa', 'architecture' => 'ruler' );
+		$first = $slugs ? $slugs[0] : '';
+		echo '<span class="kr-project__ph">' . kriswa_icon( isset( $icons[ $first ] ) ? $icons[ $first ] : 'building', 52 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	if ( 'ongoing' === $stat ) {
+		echo '<span class="kr-badge kr-badge--ongoing">' . esc_html__( 'Ongoing', 'kriswa-core' ) . '</span>';
+	}
+	echo '</a><div class="kr-project__body">';
+	if ( $tname ) {
+		echo '<span class="kr-tag">' . esc_html( $tname ) . '</span>';
+	}
+	echo '<h3 class="kr-card__title"><a href="' . esc_url( get_permalink( $id ) ) . '">' . esc_html( get_the_title( $id ) ) . '</a></h3>';
+	if ( $loc ) {
+		echo '<p class="kr-meta">' . kriswa_icon( 'pin', 16 ) . ' ' . esc_html( $loc ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	if ( $sub ) {
+		echo '<p class="kr-meta kr-meta--sub">' . esc_html( implode( '  ·  ', $sub ) ) . '</p>';
+	}
+	echo '</div></article>';
+	return ob_get_clean();
+}
 
 /* ------------------------------------------------------------------------- *
  * [kriswa_testimonials count="3"]
@@ -323,19 +336,95 @@ add_shortcode(
 	'kriswa_trust',
 	function () {
 		$items = array(
-			array( __( 'Company registration', 'kriswa-core' ), kriswa_opt( 'registration_no', false ) ),
-			array( __( 'PAN / VAT', 'kriswa-core' ), kriswa_opt( 'pan_vat', false ) ),
-			array( __( 'Engineering Council', 'kriswa-core' ), kriswa_opt( 'nec_no', false ) ),
-			array( __( 'Contractor license', 'kriswa-core' ), kriswa_opt( 'license_class', false ) ),
+			array( __( 'Company registration', 'kriswa-core' ), kriswa_opt( 'registration_no', false ), '' ),
+			array( __( 'PAN / VAT', 'kriswa-core' ), kriswa_opt( 'pan_vat', false ), '' ),
+			array( __( 'Engineering Council', 'kriswa-core' ), kriswa_opt( 'nec_no', false ), '' ),
+			array( __( 'Contractor license', 'kriswa-core' ), kriswa_opt( 'license_class', false ), '' ),
 		);
+		// Extra licences and certificates: "Name | Number | Link to certificate (optional)".
+		foreach ( preg_split( '/\r\n|\r|\n/', (string) kriswa_opt( 'certificates', false ) ) as $line ) {
+			$p = array_map( 'trim', explode( '|', $line ) );
+			if ( ! empty( $p[0] ) ) {
+				$items[] = array( $p[0], isset( $p[1] ) ? $p[1] : '', isset( $p[2] ) ? esc_url_raw( $p[2] ) : '' );
+			}
+		}
 		$out = '<ul class="kr-trust">';
 		foreach ( $items as $it ) {
 			if ( '' === trim( (string) $it[1] ) ) {
 				continue;
 			}
-			$out .= '<li>' . kriswa_icon( 'shield', 26 ) . '<span><small>' . esc_html( $it[0] ) . '</small><strong>' . esc_html( $it[1] ) . '</strong></span></li>';
+			$out .= '<li>' . kriswa_icon( 'shield', 26 ) . '<span><small>' . esc_html( $it[0] ) . '</small><strong>' . esc_html( $it[1] ) . '</strong>';
+			if ( $it[2] ) {
+				$out .= '<a class="kr-link kr-trust__cert" href="' . esc_url( $it[2] ) . '" target="_blank" rel="noopener">' . esc_html__( 'View certificate', 'kriswa-core' ) . ' &rsaquo;</a>';
+			}
+			$out .= '</span></li>';
 		}
 		return $out . '</ul>';
+	}
+);
+
+/* [kriswa_expertise] - technical expertise as chips (one per line in Site Details) */
+add_shortcode(
+	'kriswa_expertise',
+	function () {
+		$lines = array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', (string) kriswa_opt( 'expertise' ) ) ) );
+		if ( ! $lines ) {
+			return '';
+		}
+		$out = '<ul class="kr-expertise">';
+		foreach ( $lines as $l ) {
+			$out .= '<li>' . esc_html( $l ) . '</li>';
+		}
+		return $out . '</ul>';
+	}
+);
+
+/* [kriswa_team count="12"] - engineers, architects and valuers */
+add_shortcode(
+	'kriswa_team',
+	function ( $atts ) {
+		$a = shortcode_atts( array( 'count' => 12 ), $atts );
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'kriswa_team',
+				'posts_per_page' => (int) $a['count'],
+				'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'ASC' ),
+				'no_found_rows'  => true,
+			)
+		);
+		if ( ! $q->have_posts() ) {
+			return '';
+		}
+		ob_start();
+		echo '<div class="kr-team">';
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			$id   = get_the_ID();
+			$role = get_post_meta( $id, '_kr_role', true );
+			$qual = get_post_meta( $id, '_kr_qual', true );
+			$nec  = get_post_meta( $id, '_kr_nec', true );
+			echo '<article class="kr-card kr-member"><div class="kr-member__photo">';
+			if ( has_post_thumbnail() ) {
+				the_post_thumbnail( 'medium', array( 'loading' => 'lazy', 'alt' => get_the_title() ) );
+			} else {
+				$parts = preg_split( '/\s+/', trim( preg_replace( '/^(Er|Ar|Dr|Mr|Ms|Mrs)\.?\s+/i', '', get_the_title() ) ) );
+				echo '<span class="kr-member__initials" aria-hidden="true">' . esc_html( mb_strtoupper( mb_substr( $parts[0], 0, 1 ) . ( isset( $parts[1] ) ? mb_substr( $parts[1], 0, 1 ) : '' ) ) ) . '</span>';
+			}
+			echo '</div><div class="kr-member__body"><h3 class="kr-card__title">' . esc_html( get_the_title() ) . '</h3>';
+			if ( $role ) {
+				echo '<p class="kr-member__role">' . esc_html( $role ) . '</p>';
+			}
+			if ( $qual ) {
+				echo '<p class="kr-meta">' . esc_html( $qual ) . '</p>';
+			}
+			if ( $nec ) {
+				echo '<p class="kr-member__nec">' . esc_html( $nec ) . '</p>';
+			}
+			echo '</div></article>';
+		}
+		echo '</div>';
+		wp_reset_postdata();
+		return ob_get_clean();
 	}
 );
 
@@ -372,11 +461,16 @@ add_shortcode(
 			return '';
 		}
 		$stat  = get_post_meta( $id, '_kr_status', true );
+		$bands = kriswa_budget_bands();
+		$bud   = get_post_meta( $id, '_kr_budget', true );
 		$rows  = array(
-			__( 'Location', 'kriswa-core' )   => get_post_meta( $id, '_kr_location', true ),
-			__( 'Client', 'kriswa-core' )     => get_post_meta( $id, '_kr_client', true ),
-			__( 'Built-up area', 'kriswa-core' ) => get_post_meta( $id, '_kr_area', true ),
-			__( 'Status', 'kriswa-core' )     => 'ongoing' === $stat ? __( 'Ongoing', 'kriswa-core' ) : __( 'Completed', 'kriswa-core' ),
+			__( 'Location', 'kriswa-core' )            => get_post_meta( $id, '_kr_location', true ),
+			__( 'Client', 'kriswa-core' )              => get_post_meta( $id, '_kr_client', true ),
+			__( 'Built-up area', 'kriswa-core' )       => get_post_meta( $id, '_kr_area', true ),
+			__( 'Budget range', 'kriswa-core' )        => ( $bud && isset( $bands[ $bud ] ) ) ? $bands[ $bud ] : '',
+			__( 'Duration', 'kriswa-core' )            => get_post_meta( $id, '_kr_duration', true ),
+			__( 'Architect / engineer', 'kriswa-core' ) => get_post_meta( $id, '_kr_team', true ),
+			__( 'Status', 'kriswa-core' )              => 'ongoing' === $stat ? __( 'Ongoing', 'kriswa-core' ) : __( 'Completed', 'kriswa-core' ),
 		);
 		$year = get_post_meta( $id, '_kr_year', true );
 		if ( $year ) {
@@ -394,6 +488,14 @@ add_shortcode(
 			}
 			echo '<div><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $val ) . '</dd></div>';
 		}
+		$svc = kriswa_project_services( $id );
+		if ( $svc ) {
+			echo '<div class="kr-facts__services"><dt>' . esc_html__( 'Related services', 'kriswa-core' ) . '</dt><dd>';
+			foreach ( $svc as $sid ) {
+				echo '<a class="kr-chip" href="' . esc_url( get_permalink( $sid ) ) . '">' . esc_html( get_the_title( $sid ) ) . '</a>';
+			}
+			echo '</dd></div>';
+		}
 		echo '</dl>';
 		$before = get_post_meta( $id, '_kr_before', true );
 		$after  = get_post_meta( $id, '_kr_after', true );
@@ -408,6 +510,76 @@ add_shortcode(
 				echo '<h2 class="kr-subhead">' . esc_html__( 'Project video', 'kriswa-core' ) . '</h2><div class="kr-video">' . $embed . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 			}
 		}
+		return ob_get_clean();
+	}
+);
+
+/** Services a project is linked to, as published service IDs in the current language. */
+function kriswa_project_services( $project_id ) {
+	$out = array();
+	foreach ( array_filter( array_map( 'absint', (array) get_post_meta( $project_id, '_kr_service', false ) ) ) as $sid ) {
+		if ( function_exists( 'pll_get_post' ) ) {
+			$tr  = pll_get_post( $sid );
+			$sid = $tr ? $tr : $sid;
+		}
+		if ( 'publish' === get_post_status( $sid ) && 'kriswa_service' === get_post_type( $sid ) ) {
+			$out[ $sid ] = $sid;
+		}
+	}
+	return array_values( $out );
+}
+
+/** Quote-form service key for a project (so "Get a quote" from a project preselects the right service). */
+function kriswa_project_quote_service( $project_id ) {
+	$map = array(
+		'residential-construction'           => 'new-house',
+		'land-building-valuation'            => 'valuation',
+		'renovation-extension'               => 'renovation',
+		'interior-design-fit-out'            => 'interior',
+		'architectural-design-drawings'      => 'architecture',
+		'consultancy-estimation-supervision' => 'consultancy',
+	);
+	foreach ( array_filter( array_map( 'absint', (array) get_post_meta( $project_id, '_kr_service', false ) ) ) as $sid ) {
+		$slug = preg_replace( '/-ne$/', '', (string) get_post_field( 'post_name', $sid ) );
+		if ( isset( $map[ $slug ] ) ) {
+			return $map[ $slug ];
+		}
+	}
+	return '';
+}
+
+/* [kriswa_related_projects count="3"] - on a service page: finished projects linked to it */
+add_shortcode(
+	'kriswa_related_projects',
+	function ( $atts ) {
+		$a   = shortcode_atts( array( 'count' => 3 ), $atts );
+		$sid = get_the_ID();
+		if ( ! $sid || 'kriswa_service' !== get_post_type( $sid ) ) {
+			return '';
+		}
+		$ids = array( $sid );
+		if ( function_exists( 'pll_get_post_translations' ) ) {
+			$ids = array_values( pll_get_post_translations( $sid ) ) ? array_values( pll_get_post_translations( $sid ) ) : $ids;
+		}
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'kriswa_project',
+				'posts_per_page' => (int) $a['count'],
+				'no_found_rows'  => true,
+				'meta_query'     => array( array( 'key' => '_kr_service', 'value' => array_map( 'strval', $ids ), 'compare' => 'IN' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
+			)
+		);
+		if ( ! $q->have_posts() ) {
+			return '';
+		}
+		ob_start();
+		echo '<h2 class="kr-subhead">' . esc_html__( 'Related projects', 'kriswa-core' ) . '</h2><div class="kr-grid kr-grid--projects">';
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			echo kriswa_project_card( get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		echo '</div>';
+		wp_reset_postdata();
 		return ob_get_clean();
 	}
 );
@@ -451,6 +623,13 @@ add_shortcode(
 	'kriswa_quote_form',
 	function () {
 		$preset = isset( $_GET['service'] ) ? sanitize_key( wp_unslash( $_GET['service'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		$proj   = isset( $_GET['project'] ) ? absint( $_GET['project'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
+		if ( $proj && ( 'kriswa_project' !== get_post_type( $proj ) || 'publish' !== get_post_status( $proj ) ) ) {
+			$proj = 0;
+		}
+		if ( $proj && ! $preset ) {
+			$preset = kriswa_project_quote_service( $proj );
+		}
 		$sent   = isset( $_GET['kr_sent'] ); // phpcs:ignore WordPress.Security.NonceVerification
 		$err    = isset( $_GET['kr_err'] ) ? sanitize_text_field( wp_unslash( $_GET['kr_err'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 
@@ -471,6 +650,9 @@ add_shortcode(
 
 		echo '<form class="kr-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" novalidate>';
 		echo '<input type="hidden" name="action" value="kriswa_quote">';
+		if ( $proj ) {
+			echo '<input type="hidden" name="kr_project" value="' . (int) $proj . '"><p class="kr-form__ref">' . esc_html( sprintf( /* translators: %s: project title */ __( 'About: %s', 'kriswa-core' ), get_the_title( $proj ) ) ) . '</p>';
+		}
 		echo '<div class="kr-hp" aria-hidden="true"><label>Website<input type="text" name="kr_website" tabindex="-1" autocomplete="off"></label></div>';
 		echo '<div class="kr-form__error" role="alert" aria-live="assertive"' . ( $err ? '' : ' hidden' ) . '>' . esc_html( $err ) . '</div>';
 

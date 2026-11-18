@@ -118,7 +118,9 @@ add_action(
 			return;
 		}
 		$desc = '';
-		if ( is_singular() ) {
+		if ( is_singular( 'kriswa_project' ) ) {
+			$desc = kriswa_project_description( get_the_ID() );
+		} elseif ( is_singular() ) {
 			$desc = has_excerpt() ? get_the_excerpt() : wp_trim_words( wp_strip_all_tags( strip_shortcodes( get_post_field( 'post_content', get_the_ID() ) ) ), 30, '' );
 		}
 		if ( ! $desc ) {
@@ -169,4 +171,71 @@ add_filter(
 	function ( $content ) {
 		return do_shortcode( $content );
 	}
+);
+
+/* ------------------------------------------------------------------------- *
+ * Hide sample content from visitors once the owner ticks "Hide sample content".
+ * ------------------------------------------------------------------------- */
+add_action(
+	'pre_get_posts',
+	function ( $q ) {
+		if ( is_admin() || '1' !== kriswa_opt( 'hide_samples', false ) ) {
+			return;
+		}
+		$pt    = $q->get( 'post_type' );
+		$types = is_array( $pt ) ? $pt : array( $pt ? $pt : ( ( $q->is_home() || $q->is_archive() || $q->is_search() || $q->is_feed() ) ? 'post' : '' ) );
+		if ( ! array_intersect( $types, array( 'kriswa_project', 'kriswa_testimonial', 'kriswa_team', 'post' ) ) ) {
+			return;
+		}
+		$mq   = (array) $q->get( 'meta_query' );
+		$mq[] = array( 'key' => '_kr_sample', 'compare' => 'NOT EXISTS' );
+		$q->set( 'meta_query', $mq );
+	}
+);
+
+/* ------------------------------------------------------------------------- *
+ * Local SEO for each project: structured data and a descriptive meta description.
+ * ------------------------------------------------------------------------- */
+function kriswa_project_description( $id ) {
+	$types = get_the_terms( $id, 'kriswa_project_type' );
+	$type  = $types && ! is_wp_error( $types ) ? $types[0]->name : '';
+	$bits  = array_filter(
+		array(
+			trim( $type . ' project' . ( get_post_meta( $id, '_kr_location', true ) ? ' in ' . get_post_meta( $id, '_kr_location', true ) : '' ) ),
+			get_post_meta( $id, '_kr_year', true ) ? 'completed ' . get_post_meta( $id, '_kr_year', true ) : '',
+			get_post_meta( $id, '_kr_area', true ),
+		)
+	);
+	return ucfirst( implode( ', ', $bits ) ) . ' by ' . kriswa_opt( 'company_name', false ) . '.';
+}
+
+add_action(
+	'wp_head',
+	function () {
+		if ( ! is_singular( 'kriswa_project' ) ) {
+			return;
+		}
+		$id   = get_the_ID();
+		$loc  = get_post_meta( $id, '_kr_location', true );
+		$year = get_post_meta( $id, '_kr_year', true );
+		$data = array(
+			'@context'    => 'https://schema.org',
+			'@type'       => 'CreativeWork',
+			'name'        => get_the_title( $id ),
+			'url'         => get_permalink( $id ),
+			'description' => kriswa_project_description( $id ),
+			'creator'     => array( '@type' => 'GeneralContractor', 'name' => kriswa_opt( 'company_name', false ), 'url' => home_url( '/' ) ),
+		);
+		if ( $loc ) {
+			$data['locationCreated'] = array( '@type' => 'Place', 'name' => $loc, 'address' => array( '@type' => 'PostalAddress', 'addressLocality' => $loc, 'addressCountry' => 'NP' ) );
+		}
+		if ( $year ) {
+			$data['dateCreated'] = $year;
+		}
+		if ( has_post_thumbnail( $id ) ) {
+			$data['image'] = get_the_post_thumbnail_url( $id, 'large' );
+		}
+		echo '<script type="application/ld+json">' . wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG ) . "</script>\n";
+	},
+	3
 );

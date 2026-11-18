@@ -11,6 +11,7 @@ $home  = function_exists( 'pll_home_url' ) ? pll_home_url() : home_url( '/' );
 $links = array(
 	array( __( 'About us', 'kriswa' ), kriswa_u( 'about' ) ),
 	array( __( 'Our services', 'kriswa' ), kriswa_u( 'services' ) ),
+	array( __( 'Credentials and team', 'kriswa' ), kriswa_u( 'credentials' ) ),
 	array( __( 'Projects', 'kriswa' ), kriswa_projects_url() ),
 	array( __( 'Social', 'kriswa' ), kriswa_u( 'social' ) ),
 	array( __( 'Blog', 'kriswa' ), kriswa_u( 'blog' ) ),

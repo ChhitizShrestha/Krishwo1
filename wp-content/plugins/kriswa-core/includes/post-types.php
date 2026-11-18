@@ -115,6 +115,24 @@ function kriswa_register_post_types() {
 	);
 
 	register_post_type(
+		'kriswa_team',
+		array(
+			'labels'        => array(
+				'name'          => __( 'Team', 'kriswa-core' ),
+				'singular_name' => __( 'Team member', 'kriswa-core' ),
+				'add_new_item'  => __( 'Add Team Member', 'kriswa-core' ),
+				'edit_item'     => __( 'Edit Team Member', 'kriswa-core' ),
+			),
+			'public'        => false,
+			'show_ui'       => true,
+			'show_in_rest'  => true,
+			'menu_icon'     => 'dashicons-groups',
+			'menu_position' => 26,
+			'supports'      => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
+		)
+	);
+
+	register_post_type(
 		'kriswa_lead',
 		array(
 			'labels'              => array(
@@ -141,7 +159,7 @@ function kriswa_register_post_types() {
 add_filter(
 	'pll_get_post_types',
 	function ( $types ) {
-		foreach ( array( 'kriswa_project', 'kriswa_service', 'kriswa_testimonial', 'kriswa_faq' ) as $t ) {
+		foreach ( array( 'kriswa_project', 'kriswa_service', 'kriswa_testimonial', 'kriswa_faq', 'kriswa_team' ) as $t ) {
 			$types[ $t ] = $t;
 		}
 		return $types;
@@ -170,7 +188,10 @@ function kriswa_meta_fields( $post_type ) {
 			'_kr_location' => array( __( 'Site location (text)', 'kriswa-core' ), 'text', 'e.g. Budhanilkantha, Kathmandu' ),
 			'_kr_client'   => array( __( 'Client (optional)', 'kriswa-core' ), 'text', '' ),
 			'_kr_year'     => array( __( 'Year completed (AD)', 'kriswa-core' ), 'text', 'e.g. 2025' ),
-			'_kr_area'     => array( __( 'Built-up area', 'kriswa-core' ), 'text', 'e.g. 3,200 sq. ft.' ),
+			'_kr_area'     => array( __( 'Built-up area (sq. ft.)', 'kriswa-core' ), 'text', 'e.g. 3,200 sq. ft.' ),
+			'_kr_budget'   => array( __( 'Budget range', 'kriswa-core' ), 'select', kriswa_budget_bands() ),
+			'_kr_duration' => array( __( 'Project duration', 'kriswa-core' ), 'text', 'e.g. 9 months, or 2 weeks for a valuation' ),
+			'_kr_team'     => array( __( 'Architect / engineer', 'kriswa-core' ), 'text', 'e.g. Er. Ram Sharma (NEC No. 1234), Ar. Sita Karki' ),
 			'_kr_before'   => array( __( 'Before photo (media URL)', 'kriswa-core' ), 'url', 'Optional. Use with After photo for a before/after slider on renovation projects.' ),
 			'_kr_after'    => array( __( 'After photo (media URL)', 'kriswa-core' ), 'url', '' ),
 			'_kr_video'    => array( __( 'Video URL (YouTube)', 'kriswa-core' ), 'url', 'Optional walkthrough video.' ),
@@ -182,8 +203,26 @@ function kriswa_meta_fields( $post_type ) {
 			'_kr_role'   => array( __( 'Role / project', 'kriswa-core' ), 'text', 'e.g. Homeowner, Budhanilkantha' ),
 			'_kr_rating' => array( __( 'Rating (1-5)', 'kriswa-core' ), 'select', array( '5' => '5', '4' => '4', '3' => '3' ) ),
 		),
+		'kriswa_team'        => array(
+			'_kr_role' => array( __( 'Role', 'kriswa-core' ), 'text', 'e.g. Structural engineer' ),
+			'_kr_qual' => array( __( 'Qualification', 'kriswa-core' ), 'text', 'e.g. B.E. Civil, Tribhuvan University' ),
+			'_kr_nec'  => array( __( 'Engineering Council (NEC) registration no.', 'kriswa-core' ), 'text', 'Optional. Shown as a credential.' ),
+		),
 	);
 	return isset( $fields[ $post_type ] ) ? $fields[ $post_type ] : array();
+}
+
+/** Budget bands shown on a project (the empty option hides the budget). */
+function kriswa_budget_bands() {
+	return array(
+		''        => __( 'Do not show', 'kriswa-core' ),
+		'lt-25l'  => __( 'Below NPR 25 lakh', 'kriswa-core' ),
+		'25-50l'  => __( 'NPR 25 to 50 lakh', 'kriswa-core' ),
+		'50l-1cr' => __( 'NPR 50 lakh to 1 crore', 'kriswa-core' ),
+		'1-2cr'   => __( 'NPR 1 to 2 crore', 'kriswa-core' ),
+		'2-5cr'   => __( 'NPR 2 to 5 crore', 'kriswa-core' ),
+		'gt-5cr'  => __( 'Above NPR 5 crore', 'kriswa-core' ),
+	);
 }
 
 function kriswa_icon_choices() {
@@ -201,7 +240,7 @@ function kriswa_icon_choices() {
 add_action(
 	'add_meta_boxes',
 	function () {
-		foreach ( array( 'kriswa_project', 'kriswa_service', 'kriswa_testimonial' ) as $pt ) {
+		foreach ( array( 'kriswa_project', 'kriswa_service', 'kriswa_testimonial', 'kriswa_team' ) as $pt ) {
 			add_meta_box( 'kriswa_details', __( 'Details', 'kriswa-core' ), 'kriswa_render_meta_box', $pt, 'normal', 'high' );
 		}
 	}

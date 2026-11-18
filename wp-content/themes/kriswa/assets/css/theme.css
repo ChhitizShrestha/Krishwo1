@@ -209,3 +209,6 @@ body.kr-lang-ne .kr-hero .kr-hero__title { line-height: 1.3; letter-spacing: 0; 
 .kr-hero__in > .kr-hero__title { margin-inline: auto; }
 
 .kr-footer__bottom { padding-right: 72px; }
+
+/* Sections that can be empty never leave a gap */
+.kr-main > .wp-block-pattern:empty { display: none; }

@@ -20,7 +20,7 @@ echo kriswa_section_open(); // phpcs:ignore WordPress.Security.EscapeOutput
 <!-- wp:heading {"level":3} --><h3 class="wp-block-heading"><?php esc_html_e( 'Project details', 'kriswa' ); ?></h3><!-- /wp:heading -->
 <?php echo kriswa_sc( 'kriswa_project_facts' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 <!-- wp:heading {"level":3} --><h3 class="wp-block-heading"><?php esc_html_e( 'Planning something similar?', 'kriswa' ); ?></h3><!-- /wp:heading -->
-<?php echo kriswa_buttons( kriswa_btn( __( 'Get a free quote', 'kriswa' ), kriswa_quote_url() ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+<?php echo kriswa_buttons( kriswa_btn( __( 'Get a free quote', 'kriswa' ), add_query_arg( 'project', get_the_ID(), kriswa_quote_url() ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 </div>
 <!-- /wp:column --></div>
 <!-- /wp:columns -->
