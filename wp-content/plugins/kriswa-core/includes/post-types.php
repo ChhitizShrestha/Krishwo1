@@ -192,8 +192,8 @@ function kriswa_meta_fields( $post_type ) {
 			'_kr_budget'   => array( __( 'Budget range', 'kriswa-core' ), 'select', kriswa_budget_bands() ),
 			'_kr_duration' => array( __( 'Project duration', 'kriswa-core' ), 'text', 'e.g. 9 months, or 2 weeks for a valuation' ),
 			'_kr_team'     => array( __( 'Architect / engineer', 'kriswa-core' ), 'text', 'e.g. Er. Ram Sharma (NEC No. 1234), Ar. Sita Karki' ),
-			'_kr_before'   => array( __( 'Before photo (media URL)', 'kriswa-core' ), 'url', 'Optional. Use with After photo for a before/after slider on renovation projects.' ),
-			'_kr_after'    => array( __( 'After photo (media URL)', 'kriswa-core' ), 'url', '' ),
+			'_kr_before_id' => array( __( 'Before photo', 'kriswa-core' ), 'image', 'Optional. Choose both a Before and an After photo to show a drag-to-compare slider (great for renovations).' ),
+			'_kr_after_id'  => array( __( 'After photo', 'kriswa-core' ), 'image', '' ),
 			'_kr_video'    => array( __( 'Video URL (YouTube)', 'kriswa-core' ), 'url', 'Optional walkthrough video.' ),
 		),
 		'kriswa_service'     => array(
@@ -259,6 +259,12 @@ function kriswa_render_meta_box( $post ) {
 				echo '<option value="' . esc_attr( $v ) . '"' . selected( (string) $val, (string) $v, false ) . '>' . esc_html( $l ) . '</option>';
 			}
 			echo '</select>';
+		} elseif ( 'image' === $type ) {
+			$id = absint( $val );
+			echo '<div class="kriswa-img" data-kr-image><input type="hidden" name="' . esc_attr( $key ) . '" id="' . esc_attr( $key ) . '" value="' . esc_attr( $id ) . '"><span class="kriswa-img__preview">' . ( $id ? wp_get_attachment_image( $id, array( 120, 120 ) ) : '' ) . '</span> <button type="button" class="button" data-kr-image-pick>' . esc_html( $id ? 'Change photo' : 'Choose photo' ) . '</button> <button type="button" class="button-link" data-kr-image-clear' . ( $id ? '' : ' hidden' ) . '>Remove</button></div>';
+			if ( $extra ) {
+				echo '<p class="description">' . esc_html( $extra ) . '</p>';
+			}
 		} else {
 			echo '<input class="regular-text" type="' . ( 'url' === $type ? 'url' : 'text' ) . '" name="' . esc_attr( $key ) . '" id="' . esc_attr( $key ) . '" value="' . esc_attr( $val ) . '" />';
 			if ( $extra ) {
@@ -287,6 +293,11 @@ add_action(
 				continue;
 			}
 			$raw = wp_unslash( $_POST[ $key ] );
+			if ( 'image' === $def[1] ) {
+				$att = absint( $raw );
+				update_post_meta( $post_id, $key, ( $att && wp_attachment_is_image( $att ) ) ? $att : '' );
+				continue;
+			}
 			$val = 'url' === $def[1] ? esc_url_raw( $raw ) : sanitize_text_field( $raw );
 			if ( 'select' === $def[1] && ! isset( $def[2][ $val ] ) ) {
 				continue;

@@ -78,7 +78,7 @@ add_shortcode(
 			echo '<span class="kr-service__icon">' . kriswa_icon( $icon ? $icon : 'home', 30 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
 			echo '<h3 class="kr-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h3>';
 			echo '<p class="kr-card__text">' . esc_html( wp_trim_words( get_the_excerpt(), 24 ) ) . '</p>';
-			echo '<a class="kr-link" href="' . esc_url( get_permalink() ) . '">' . esc_html__( 'Learn more', 'kriswa-core' ) . ' <span aria-hidden="true">&rarr;</span></a>';
+			echo '<a class="kr-link" href="' . esc_url( get_permalink() ) . '">' . esc_html__( 'Learn more', 'kriswa-core' ) . '<span class="screen-reader-text"> ' . esc_html( get_the_title() ) . '</span> <span aria-hidden="true">&rarr;</span></a>';
 			echo '</article>';
 		}
 		echo '</div>';
@@ -144,8 +144,9 @@ function kriswa_project_card( $id ) {
 	ob_start();
 	echo '<article class="kr-card kr-project" data-types="' . esc_attr( implode( ' ', $slugs ) ) . '">';
 	echo '<a class="kr-project__media kr-project__media--' . esc_attr( $slugs ? $slugs[0] : 'none' ) . '" href="' . esc_url( get_permalink( $id ) ) . '" tabindex="-1" aria-hidden="true">';
-	if ( has_post_thumbnail( $id ) ) {
-		echo get_the_post_thumbnail( $id, 'large', array( 'loading' => 'lazy', 'alt' => '' ) );
+	$cover = kriswa_project_cover_id( $id );
+	if ( $cover ) {
+		echo wp_get_attachment_image( $cover, 'large', false, array( 'loading' => 'lazy', 'alt' => '' ) );
 	} else {
 		$icons = array( 'residential' => 'home', 'renovation' => 'tools', 'valuation' => 'scale', 'interior' => 'sofa', 'architecture' => 'ruler' );
 		$first = $slugs ? $slugs[0] : '';
@@ -497,8 +498,8 @@ add_shortcode(
 			echo '</dd></div>';
 		}
 		echo '</dl>';
-		$before = get_post_meta( $id, '_kr_before', true );
-		$after  = get_post_meta( $id, '_kr_after', true );
+		$before = kriswa_meta_image_url( $id, '_kr_before_id', '_kr_before' );
+		$after  = kriswa_meta_image_url( $id, '_kr_after_id', '_kr_after' );
 		if ( $before && $after ) {
 			echo '<h2 class="kr-subhead">' . esc_html__( 'Before and after', 'kriswa-core' ) . '</h2>';
 			echo kriswa_before_after_html( $before, $after ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -513,6 +514,32 @@ add_shortcode(
 		return ob_get_clean();
 	}
 );
+
+/** Photo URL from an attachment-ID field, falling back to an older plain-URL field. */
+function kriswa_meta_image_url( $post_id, $id_key, $legacy_key ) {
+	$att = absint( get_post_meta( $post_id, $id_key, true ) );
+	if ( $att ) {
+		$url = wp_get_attachment_image_url( $att, 'large' );
+		if ( $url ) {
+			return $url;
+		}
+	}
+	return (string) get_post_meta( $post_id, $legacy_key, true );
+}
+
+/** Cover photo for a project: the chosen main photo, else the featured image, else the first gallery photo. */
+function kriswa_project_cover_id( $project_id ) {
+	$thumb = get_post_thumbnail_id( $project_id );
+	if ( $thumb ) {
+		return (int) $thumb;
+	}
+	$main = absint( get_post_meta( $project_id, '_kr_main', true ) );
+	if ( $main ) {
+		return $main;
+	}
+	$gal = array_filter( array_map( 'absint', explode( ',', (string) get_post_meta( $project_id, '_kr_gallery', true ) ) ) );
+	return $gal ? (int) reset( $gal ) : 0;
+}
 
 /** Services a project is linked to, as published service IDs in the current language. */
 function kriswa_project_services( $project_id ) {

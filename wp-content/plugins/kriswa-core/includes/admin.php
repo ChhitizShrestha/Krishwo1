@@ -114,7 +114,7 @@ add_action(
 		if ( 'kriswa_project' !== $post->post_type ) {
 			return;
 		}
-		echo '<div class="notice notice-info inline" style="margin:12px 0"><p><strong>Adding a project takes 4 steps:</strong> 1) type the project name above, 2) write a short description below, 3) set a <em>Featured image</em> (main photo, right side) and a <em>Project Type</em> (Residential, Renovation, Valuation, Interior or Architecture), 4) fill in <em>Details</em> and add more <em>Photos</em> lower down. Press <strong>Publish</strong>. It appears on the Projects page automatically.</p></div>';
+		echo '<div class="notice notice-info inline" style="margin:12px 0"><p><strong>Adding a project takes 4 steps:</strong> 1) type the project name above, 2) write a short description below, 3) pick a <em>Project Type</em> on the right (Residential, Renovation, Valuation, Interior or Architecture), 4) fill in <em>Details</em>, then add your <em>Photos</em> at the bottom and click the star on the best one: that becomes the main photo. Press <strong>Publish</strong>. It appears on the Projects page automatically.</p></div>';
 	}
 );
 
@@ -164,11 +164,19 @@ add_action(
 
 function kriswa_gallery_box( $post ) {
 	wp_nonce_field( 'kriswa_gallery_' . $post->ID, 'kriswa_gallery_nonce' );
-	$ids = array_filter( array_map( 'absint', explode( ',', (string) get_post_meta( $post->ID, '_kr_gallery', true ) ) ) );
-	echo '<p class="description">Add as many photos as you like. They show as a gallery on the project page; visitors tap one to enlarge it. The <em>Featured image</em> (right side) is the cover photo.</p>';
-	echo '<div class="kriswa-gal" data-kr-gallery><input type="hidden" name="kr_gallery" value="' . esc_attr( implode( ',', $ids ) ) . '"><ul class="kriswa-gal__list">';
+	$ids  = array_values( array_filter( array_map( 'absint', explode( ',', (string) get_post_meta( $post->ID, '_kr_gallery', true ) ) ) ) );
+	$main = absint( get_post_meta( $post->ID, '_kr_main', true ) );
+	$feat = (int) get_post_thumbnail_id( $post->ID );
+	if ( ! $main ) {
+		$main = $feat ? $feat : ( $ids ? $ids[0] : 0 );
+	}
+	if ( $main && ! in_array( $main, $ids, true ) ) {
+		array_unshift( $ids, $main ); // A photo set earlier as the featured image joins the gallery.
+	}
+	echo '<p class="description">Add as many photos as you like. Click the <strong>star</strong> on a photo to make it the <strong>main photo</strong>: it is the picture shown in the Projects list and at the top of the project page. Drag photos to reorder them. Visitors can tap any photo to enlarge it.</p>';
+	echo '<div class="kriswa-gal" data-kr-gallery><input type="hidden" name="kr_gallery" value="' . esc_attr( implode( ',', $ids ) ) . '"><input type="hidden" name="kr_main" value="' . (int) $main . '"><ul class="kriswa-gal__list">';
 	foreach ( $ids as $id ) {
-		echo '<li data-id="' . (int) $id . '">' . wp_get_attachment_image( $id, array( 90, 90 ) ) . '<button type="button" class="kriswa-gal__rm" aria-label="Remove photo">&times;</button></li>';
+		echo '<li data-id="' . (int) $id . '"' . ( $id === $main ? ' class="is-main"' : '' ) . '>' . wp_get_attachment_image( $id, array( 110, 110 ) ) . '<button type="button" class="kriswa-gal__star" title="Make main photo" aria-label="Make main photo">&#9733;</button><span class="kriswa-gal__badge">Main photo</span><button type="button" class="kriswa-gal__rm" aria-label="Remove photo">&times;</button></li>';
 	}
 	echo '</ul><p><button type="button" class="button button-primary" data-kr-gal-add>Add photos</button></p></div>';
 }
@@ -182,12 +190,40 @@ add_action(
 		$raw = isset( $_POST['kr_gallery'] ) ? sanitize_text_field( wp_unslash( $_POST['kr_gallery'] ) ) : '';
 		$ids = array();
 		foreach ( array_filter( array_map( 'absint', explode( ',', $raw ) ) ) as $id ) {
-			if ( wp_attachment_is_image( $id ) ) {
+			if ( wp_attachment_is_image( $id ) && ! in_array( $id, $ids, true ) ) {
 				$ids[] = $id;
 			}
 		}
+		$main = isset( $_POST['kr_main'] ) ? absint( $_POST['kr_main'] ) : 0;
+		if ( ! in_array( $main, $ids, true ) ) {
+			$main = $ids ? $ids[0] : 0;
+		}
 		update_post_meta( $post_id, '_kr_gallery', implode( ',', $ids ) );
+		update_post_meta( $post_id, '_kr_main', $main );
+		// The main photo is the featured image, so the Projects list, the project page and search/social previews all use it.
+		if ( $main ) {
+			set_post_thumbnail( $post_id, $main );
+		} else {
+			delete_post_thumbnail( $post_id );
+		}
+		// Search engines and screen readers need alt text: fill it in when it was left empty.
+		$title = get_the_title( $post_id );
+		$loc   = get_post_meta( $post_id, '_kr_location', true );
+		foreach ( $ids as $n => $id ) {
+			if ( '' === trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) ) ) {
+				update_post_meta( $id, '_wp_attachment_image_alt', trim( $title . ( $loc && false === stripos( $title, $loc ) ? ', ' . $loc : '' ) ) . ' - photo ' . ( $n + 1 ) );
+			}
+		}
 	}
+);
+
+/* The Photos box replaces the separate Featured image box, so there is only one place to choose photos. */
+add_action(
+	'add_meta_boxes_kriswa_project',
+	function () {
+		remove_meta_box( 'postimagediv', 'kriswa_project', 'side' );
+	},
+	99
 );
 
 add_action(
@@ -197,7 +233,7 @@ add_action(
 		if ( $screen && 'kriswa_project' === $screen->post_type && in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 			wp_enqueue_media();
 			wp_enqueue_script( 'kriswa-admin', KRISWA_CORE_URL . 'assets/admin.js', array( 'jquery', 'jquery-ui-sortable' ), KRISWA_CORE_VERSION, true );
-			wp_add_inline_style( 'wp-admin', '.kriswa-gal__list{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}.kriswa-gal__list li{position:relative}.kriswa-gal__list img{display:block;border-radius:6px}.kriswa-gal__rm{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border:0;border-radius:50%;background:#d63638;color:#fff;cursor:pointer;line-height:1}' );
+			wp_add_inline_style( 'wp-admin', '.kriswa-gal__list li{cursor:move}.kriswa-gal__star{position:absolute;top:4px;left:4px;width:26px;height:26px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#ddd;cursor:pointer;line-height:1;font-size:15px}.kriswa-gal__list li.is-main .kriswa-gal__star{background:#f5a524;color:#fff}.kriswa-gal__badge{display:none;position:absolute;left:0;right:0;bottom:0;background:#f5a524;color:#fff;font-size:11px;font-weight:600;text-align:center;padding:2px 0;border-radius:0 0 6px 6px}.kriswa-gal__list li.is-main .kriswa-gal__badge{display:block}.kriswa-gal__list li.is-main img{outline:3px solid #f5a524;outline-offset:-3px}.kriswa-img__preview img{display:inline-block;vertical-align:middle;border-radius:6px;margin-right:8px}.kriswa-gal__list{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}.kriswa-gal__list li{position:relative}.kriswa-gal__list img{display:block;border-radius:6px}.kriswa-gal__rm{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border:0;border-radius:50%;background:#d63638;color:#fff;cursor:pointer;line-height:1}' );
 		}
 	}
 );
@@ -308,6 +344,7 @@ add_action(
 		}
 		if ( isset( $_POST['post_ID'] ) && (int) $_POST['post_ID'] === (int) $post_id && current_user_can( 'edit_post', $post_id ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			delete_post_meta( $post_id, '_kr_sample' );
+			delete_post_meta( $post_id, '_genesis_noindex' ); // It is real content now: let Google index it.
 		}
 	},
 	99,

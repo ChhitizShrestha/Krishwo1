@@ -45,9 +45,21 @@ wp-content/
 | Testimonials, FAQs, services | the menus of the same name |
 | Quote requests | **Leads** (with CSV export); new ones are counted on the Dashboard |
 
-Each project can show: year, built-up area, budget range, duration, architect/engineer, location, a photo gallery, before/after photos, a video and **related services** (tick them in the right-hand box). Visitors see these as a tidy fact list, the service page lists its related projects, "Get a free quote" on a project preselects the matching service and tells you which project the enquiry came from, and each project carries local-SEO structured data (place, year, company).
+Each project can show: a **main photo** (choose it with the star in the Photos box; it is used in the Projects list and at the top of the project), before/after photos (uploaded from the media library, no links needed), year, built-up area, budget range, duration, architect/engineer, location, a photo gallery, before/after photos, a video and **related services** (tick them in the right-hand box). Visitors see these as a tidy fact list, the service page lists its related projects, "Get a free quote" on a project preselects the matching service and tells you which project the enquiry came from, and each project carries local-SEO structured data (place, year, company).
 
 Project types are Residential, Renovation, Valuation, Interior and Architecture. The sample projects cover residential buildings, renovations and land/building valuation cases; each shows a coloured placeholder until a photo is added.
+
+### Search engine optimisation (works with The SEO Framework)
+
+Install **The SEO Framework** (free). The plugin detects it and, the next time an admin page loads, sets it up once (blanks only; it never overwrites something you wrote): site title "Kriswa Construction", a keyword-first home title and a 120-160 character home description, the organization name and logo, a default 1200x630 share picture, the theme colour and the browser-tab icon. Check progress under **Site Details > SEO** (a live checklist: indexing allowed, readable links, HTTPS, icon, titles, share picture, alt text, sample content, sitemap).
+
+What the site feeds into TSF through its public filters (so nothing is duplicated):
+- **Titles and descriptions** for the template-built pages (their content is empty, so TSF could not generate any), the Projects archive and every project (type, location, year, area, builder, service). Titles stay short so "title - site name" fits in about 60 characters. Anything you type in TSF's own SEO box for a page always wins.
+- **One business entity in the schema**: TSF's Organization becomes a `GeneralContractor` with legal name, tagline, area served (Nepal), founding year and your social profiles. Phone, email and address are added **only when they are real** (placeholders are never published). Each project adds a `CreativeWork` with place and year; the FAQ page keeps its `FAQPage` data. Breadcrumb data comes from TSF; visible breadcrumbs appear in every page banner.
+- **Sample content is `noindex`** and so left out of the sitemap until you edit and save it. The default WordPress "Hello world!" post and "Sample Page" are removed.
+- Project photos get alt text automatically (project name, location, photo number) when empty; service links have descriptive link text for screen readers and search engines; footer headings are no longer page headings.
+
+After launch: submit `/sitemap.xml` in Google Search Console, create a Google Business Profile with the same name, address and phone as the website, and replace every placeholder in Site Details.
 
 ### Trust, credentials and team
 

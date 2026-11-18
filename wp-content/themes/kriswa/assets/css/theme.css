@@ -56,9 +56,12 @@ img { height: auto; }
 .kr-main > * { margin-block-start: 0; margin-block-end: 0; }
 
 /* ---------- Navigation: slim, translucent ---------- */
-.kr-header { position: sticky; top: 0; z-index: 100; background: var(--kr-bg); border-bottom: 1px solid var(--kr-line); }
+.kr-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--kr-line); }
+/* The frosted background lives on a pseudo-element. Putting backdrop-filter on .kr-header itself would make it the
+   containing block for the full-screen phone menu and squash that menu into the 60px header bar. */
+.kr-header::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--kr-bg); }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-	.kr-header { background: var(--kr-nav-bg); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); }
+	.kr-header::before { background: var(--kr-nav-bg); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); }
 }
 .admin-bar .kr-header { top: var(--wp-admin--admin-bar--height, 32px); }
 .kr-mainbar { padding: 0 var(--wp--preset--spacing--30); }
@@ -212,3 +215,35 @@ body.kr-lang-ne .kr-hero .kr-hero__title { line-height: 1.3; letter-spacing: 0; 
 
 /* Sections that can be empty never leave a gap */
 .kr-main > .wp-block-pattern:empty { display: none; }
+
+/* ---------- Phone menu ---------- */
+.kr-nav .kr-nav-cta { display: none; }
+.wp-block-navigation__responsive-container.is-menu-open { position: fixed; inset: 0; z-index: 100000; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__responsive-dialog,
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__responsive-container-content { min-height: 100%; }
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__container { gap: 6px; align-items: flex-start; width: 100%; }
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item { width: 100%; border-bottom: 1px solid var(--kr-line); }
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item__content::after { display: none; }
+.wp-block-navigation__responsive-container.is-menu-open .kr-nav-cta { display: block; margin-top: 18px; border-bottom: 0; }
+.wp-block-navigation__responsive-container.is-menu-open .kr-nav-cta .wp-block-navigation-item__content { display: inline-block; padding: 12px 26px; border-radius: 980px; background: var(--kr-primary); color: #fff; font-size: 1.125rem; font-weight: 500; text-align: center; }
+.wp-block-navigation__responsive-container-open { border-radius: 10px; }
+@media (max-width: 420px) { .kr-brand__name small { display: none; } }
+
+/* Phone menu: left-aligned list with comfortable padding (overrides the right-aligned desktop layout setting) */
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__responsive-container-content { padding: 64px 24px 32px; align-items: flex-start; }
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__container,
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-page-list { align-items: flex-start !important; justify-content: flex-start !important; }
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item { justify-content: flex-start; align-items: flex-start; }
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item__content { width: 100%; text-align: left; }
+.wp-block-navigation__responsive-container.is-menu-open .kr-nav-cta .wp-block-navigation-item__content { width: auto; }
+.wp-block-navigation__responsive-container-close { top: 14px; right: 14px; }
+
+/* Tablets (601-900px): the full menu stays visible, so tighten it to one row */
+@media (min-width: 601px) and (max-width: 900px) {
+	.kr-brand__name small { display: none; }
+	.kr-mainbar__in { gap: 12px; }
+	.kr-nav .wp-block-navigation__container { gap: 0 2px; flex-wrap: nowrap; }
+	.kr-nav .wp-block-navigation-item__content { padding: 8px 8px; font-size: .875rem; }
+}
+@media (min-width: 601px) and (max-width: 680px) { .kr-nav .wp-block-navigation-item__content { padding: 8px 5px; font-size: .8125rem; } .kr-brand img { width: 36px; height: 36px; } }
+.wp-block-navigation__responsive-container.is-menu-open .kr-nav-cta { display: flex; justify-content: flex-start !important; }

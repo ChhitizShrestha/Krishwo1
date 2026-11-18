@@ -76,8 +76,8 @@ add_action(
 add_action(
 	'wp_head',
 	function () {
-		if ( ! is_front_page() ) {
-			return;
+		if ( ! is_front_page() || kriswa_tsf_active() ) {
+			return; // The SEO Framework's graph already carries the business (see seo.php).
 		}
 		$same = array();
 		foreach ( array( 'facebook', 'instagram', 'youtube', 'tiktok', 'linkedin' ) as $n ) {
@@ -119,7 +119,9 @@ add_action(
 		}
 		$desc = '';
 		if ( is_singular( 'kriswa_project' ) ) {
-			$desc = kriswa_project_description( get_the_ID() );
+			$desc = kriswa_seo_project_description( get_the_ID() );
+		} elseif ( is_singular( 'page' ) && isset( kriswa_seo_copy()[ kriswa_seo_slug( get_the_ID() ) ] ) ) {
+			$desc = kriswa_seo_copy()[ kriswa_seo_slug( get_the_ID() ) ][1]; // Unique description per page even without an SEO plugin.
 		} elseif ( is_singular() ) {
 			$desc = has_excerpt() ? get_the_excerpt() : wp_trim_words( wp_strip_all_tags( strip_shortcodes( get_post_field( 'post_content', get_the_ID() ) ) ), 30, '' );
 		}
@@ -212,7 +214,7 @@ function kriswa_project_description( $id ) {
 add_action(
 	'wp_head',
 	function () {
-		if ( ! is_singular( 'kriswa_project' ) ) {
+		if ( ! is_singular( 'kriswa_project' ) || kriswa_tsf_active() ) {
 			return;
 		}
 		$id   = get_the_ID();

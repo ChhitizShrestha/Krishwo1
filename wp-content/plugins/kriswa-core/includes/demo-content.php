@@ -100,6 +100,9 @@ function kriswa_seed( $type, $slug, $title, $content = '', $meta = array(), $ext
 	foreach ( $meta as $k => $v ) {
 		update_post_meta( $id, $k, $v );
 	}
+	if ( isset( $meta['_kr_sample'] ) ) {
+		update_post_meta( $id, '_genesis_noindex', 1 ); // Sample content must never be indexed.
+	}
 	$log[] = 'Created ' . $type . ': ' . $title;
 	return $id;
 }
@@ -203,6 +206,11 @@ function kriswa_run_setup( $with_samples = true, $manual = false ) {
 
 	update_option( 'kriswa_setup_done', 1, false );
 	update_option( 'kriswa_pages_ver', KRISWA_CORE_VERSION, false );
+	if ( function_exists( 'kriswa_seo_apply' ) ) {
+		foreach ( kriswa_seo_apply() as $line ) {
+			$log[] = $line;
+		}
+	}
 	flush_rewrite_rules();
 	$log[] = 'Refreshed links. Next: open Kriswa Site > Site Details and replace the placeholder phone, email, address and numbers.';
 	return $log;

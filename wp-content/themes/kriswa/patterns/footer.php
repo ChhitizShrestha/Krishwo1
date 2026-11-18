@@ -36,18 +36,18 @@ $svc   = array(
 		<?php echo do_shortcode( '[kriswa_social]' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	</div>
 	<div class="kr-footer__col">
-		<h2 class="kr-footer__title"><?php esc_html_e( 'Quick links', 'kriswa' ); ?></h2>
+		<p class="kr-footer__title"><?php esc_html_e( 'Quick links', 'kriswa' ); ?></p>
 		<ul><?php foreach ( $links as $l ) : ?><li><a href="<?php echo esc_url( $l[1] ); ?>"><?php echo esc_html( $l[0] ); ?></a></li><?php endforeach; ?></ul>
 	</div>
 	<div class="kr-footer__col">
-		<h2 class="kr-footer__title"><?php esc_html_e( 'What we do', 'kriswa' ); ?></h2>
+		<p class="kr-footer__title"><?php esc_html_e( 'What we do', 'kriswa' ); ?></p>
 		<ul><?php foreach ( $svc as $l ) : ?><li><a href="<?php echo esc_url( $l[1] ); ?>"><?php echo esc_html( $l[0] ); ?></a></li><?php endforeach; ?></ul>
 	</div>
 	<div class="kr-footer__col">
-		<h2 class="kr-footer__title"><?php esc_html_e( 'Get in touch', 'kriswa' ); ?></h2>
+		<p class="kr-footer__title"><?php esc_html_e( 'Get in touch', 'kriswa' ); ?></p>
 		<p><?php echo esc_html( kriswa_o( 'address', 'Kathmandu, Nepal' ) ); ?></p>
 		<p><a href="tel:+<?php echo esc_attr( ltrim( preg_replace( '/\D+/', '', kriswa_o( 'phone', '' ) ), '+' ) ); ?>"><?php echo esc_html( kriswa_o( 'phone', '+977-1-0000000' ) ); ?></a><br><a href="mailto:<?php echo esc_attr( antispambot( kriswa_o( 'email', 'info@example.com' ) ) ); ?>"><?php echo esc_html( kriswa_o( 'email', 'info@example.com' ) ); ?></a></p>
-		<h3 class="kr-footer__title kr-footer__title--sm"><?php esc_html_e( 'Get project tips by email', 'kriswa' ); ?></h3>
+		<p class="kr-footer__title kr-footer__title--sm"><?php esc_html_e( 'Get project tips by email', 'kriswa' ); ?></h3>
 		<?php echo do_shortcode( '[kriswa_newsletter]' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	</div>
 </div>

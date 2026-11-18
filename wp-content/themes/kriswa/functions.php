@@ -120,18 +120,19 @@ function kriswa_section_close() {
 	return '</div>' . "\n" . '<!-- /wp:group --></div>' . "\n" . '<!-- /wp:group -->';
 }
 
-/** Navigation link block with a safely JSON-encoded label and URL. */
-function kriswa_navlink( $label, $url ) {
-	$attrs = wp_json_encode(
-		array(
-			'label'          => $label,
-			'type'           => 'custom',
-			'url'            => esc_url_raw( $url ),
-			'kind'           => 'custom',
-			'isTopLevelLink' => true,
-		),
-		JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP
+/** Navigation link block with a safely JSON-encoded label and URL (optional extra CSS class). */
+function kriswa_navlink( $label, $url, $class = '' ) {
+	$data = array(
+		'label'          => $label,
+		'type'           => 'custom',
+		'url'            => esc_url_raw( $url ),
+		'kind'           => 'custom',
+		'isTopLevelLink' => true,
 	);
+	if ( $class ) {
+		$data['className'] = $class;
+	}
+	$attrs = wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP );
 	return '<!-- wp:navigation-link ' . $attrs . ' /-->';
 }
 
@@ -150,3 +151,33 @@ function kriswa_has( $post_type ) {
 	$q = new WP_Query( array( 'post_type' => $post_type, 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => true ) );
 	return $q->have_posts();
 }
+
+/* Browser-tab icon: WordPress shows its own logo unless a Site Icon exists. Fall back to the Kriswa emblem. */
+add_action(
+	'wp_head',
+	function () {
+		if ( has_site_icon() ) {
+			return;
+		}
+		$u = get_theme_file_uri( 'assets/images/' );
+		echo '<link rel="icon" href="' . esc_url( $u . 'favicon.ico' ) . '" sizes="48x48">' . "\n";
+		echo '<link rel="icon" type="image/png" href="' . esc_url( $u . 'favicon-32.png' ) . '" sizes="32x32">' . "\n";
+		echo '<link rel="icon" type="image/png" href="' . esc_url( $u . 'icon-192.png' ) . '" sizes="192x192">' . "\n";
+		echo '<link rel="apple-touch-icon" href="' . esc_url( $u . 'apple-touch-icon.png' ) . '">' . "\n";
+	},
+	2
+);
+add_action(
+	'wp_head',
+	function () {
+		if ( ! defined( 'THE_SEO_FRAMEWORK_VERSION' ) ) { // TSF prints its own theme-color.
+			echo '<meta name="theme-color" content="#1747b8">' . "\n";
+		}
+	},
+	2
+);
+add_action( 'admin_head', function () {
+	if ( ! has_site_icon() ) {
+		echo '<link rel="icon" href="' . esc_url( get_theme_file_uri( 'assets/images/favicon-32.png' ) ) . '" sizes="32x32">' . "\n";
+	}
+} );

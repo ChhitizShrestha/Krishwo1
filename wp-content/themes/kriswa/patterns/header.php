@@ -27,7 +27,7 @@ $nav   = array(
 <!-- /wp:html -->
 
 <!-- wp:navigation {"overlayMenu":"mobile","icon":"menu","className":"kr-nav","layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"}} -->
-<?php foreach ( $nav as $item ) { echo kriswa_navlink( $item[0], $item[1] ) . "\n"; } // phpcs:ignore WordPress.Security.EscapeOutput ?>
+<?php foreach ( $nav as $item ) { echo kriswa_navlink( $item[0], $item[1] ) . "\n"; } echo kriswa_navlink( __( 'Get a Free Quote', 'kriswa' ), kriswa_quote_url(), 'kr-nav-cta' ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 <!-- /wp:navigation -->
 
 <?php echo kriswa_sc( 'kriswa_lang_switcher' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>

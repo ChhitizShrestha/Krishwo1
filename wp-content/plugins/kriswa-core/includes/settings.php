@@ -81,6 +81,11 @@ function kriswa_settings_schema() {
 				'tiktok_videos'   => array( 'TikTok video links', 'tiktok', 'One link per line, e.g. https://www.tiktok.com/@yourname/video/1234567890. Links are checked when you save; mistyped ones are rejected with an explanation.' ),
 			),
 		),
+		'seo'      => array(
+			'SEO',
+			'Checks that help the site rank. The SEO Framework plugin does the heavy lifting; this page tells you what is done and what is left.',
+			array(),
+		),
 		'extras'   => array(
 			'Extras',
 			'Optional tools. All free.',
@@ -216,6 +221,9 @@ function kriswa_settings_page() {
 		echo '<section class="kriswa-panel" id="tab-' . esc_attr( $id ) . '" data-panel="' . esc_attr( $id ) . '"><h2>' . esc_html( $t[0] ) . '</h2><p class="description" style="max-width:760px">' . esc_html( $t[1] ) . '</p>';
 		if ( 'feeds' === $id && function_exists( 'kriswa_social_admin_panel' ) ) {
 			kriswa_social_admin_panel();
+		}
+		if ( 'seo' === $id && function_exists( 'kriswa_seo_panel' ) ) {
+			kriswa_seo_panel();
 		}
 		echo '<table class="form-table" role="presentation">';
 		foreach ( $t[2] as $key => $def ) {
